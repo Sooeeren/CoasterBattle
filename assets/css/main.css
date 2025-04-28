@@ -1,0 +1,148 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: sans-serif;
+  background: black;
+}
+
+#notification {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 8px black;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+#scoreboard {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  color: gold;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 5px 15px;
+  border-radius: 10px;
+  display: flex;
+  gap: 20px;
+  z-index: 20;
+}
+
+.coaster-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  flex-direction: row;
+}
+
+.coaster-side {
+  position: relative;
+  flex: 1;
+  background-size: cover;
+  background-position: center;
+}
+
+.controls {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  color: white;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 2px solid white;
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: white;
+  color: black;
+}
+
+#stat-name {
+  font-size: 24px;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 5px black;
+}
+
+.name-overlay {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px;
+  font-size: 20px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 90%;
+}
+
+.creator-overlay {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 90%;
+}
+
+.stat-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px;
+  font-size: 26px;
+  font-weight: bold;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .coaster-container {
+    flex-direction: column;
+  }
+}
