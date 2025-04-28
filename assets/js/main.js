@@ -101,7 +101,7 @@ function formatStatValue(stat, value) {
     case "length": return value + " m";
     case "height": return value + " m";
     case "drop": return value + " m";
-    case "speed": return value + " km/h";
+    case "speed": return value + " mp/h";
     case "inversions": return value + "x";
     case "verticalAngle": return value + "°";
     case "duration": return (value / 60).toFixed(2) + " min";
