@@ -5,159 +5,347 @@ let stats = ["length", "height", "drop", "speed", "inversions", "verticalAngle",
 let currentStat = "";
 let coasterLeft, coasterRight;
 let score = 0;
-let bestScore = parseInt(sessionStorage.getItem('bestScore')) || 0;
+let bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
 let lastStat = "";
+let isGameOver = false;
+let gameSettings = {
+    units: 'metric',
+    timerDuration: 10 // seconds, 0 to disable
+};
+let timerInterval;
 
-function getRandomStat() {
-  return stats[Math.floor(Math.random() * stats.length)];
-}
+// Labels for buttons based on the current stat
+const statLabels = {
+    default: { higher: 'Higher ▲', lower: 'Lower ▼' },
+    length: { higher: 'Longer ▲', lower: 'Shorter ▼' },
+    speed: { higher: 'Faster ▲', lower: 'Slower ▼' },
+    inversions: { higher: 'More ▲', lower: 'Fewer ▼' },
+    duration: { higher: 'Longer ▲', lower: 'Shorter ▼' },
+    capacity: { higher: 'More ▲', lower: 'Less ▼' },
+    cost: { higher: 'More Expensive ▲', lower: 'Cheaper ▼' },
+    year: { higher: 'Newer ▲', lower: 'Older ▼' }
+};
+
+// DOM Elements
+const loader = document.getElementById("loader");
+const settingsIcon = document.getElementById("settings-icon");
+const settingsModal = document.getElementById("settings-modal");
+const closeModalButton = document.querySelector(".close-button");
+const unitsSelect = document.getElementById("units");
+const timerSlider = document.getElementById("timer-slider");
+const timerValue = document.getElementById("timer-value");
+const gameOverModal = document.getElementById("game-over-modal");
+const playAgainButton = document.getElementById("play-again-button");
+const copyScoreButton = document.getElementById("copy-score-button");
+const timerBarContainer = document.getElementById('timer-bar-container');
+const timerBar = document.getElementById('timer-bar');
+
+
+function showLoader() { loader.style.display = 'flex'; }
+function hideLoader() { loader.style.display = 'none'; }
 
 async function preloadCoasters(n) {
-  while (preloadQueue.length < n) {
-    let coaster = await fetchCoaster();
-    preloadQueue.push(coaster);
-    let img = new Image();
-    img.src = coaster.mainPicture.url;
-  }
+    let promises = [];
+    for (let i = 0; i < n; i++) {
+        promises.push(fetchCoaster());
+    }
+    const newCoasters = await Promise.all(promises);
+    preloadQueue.push(...newCoasters.filter(c => c)); // Add only valid coasters
+    
+    // Preload images
+    preloadQueue.forEach(coaster => {
+        if (coaster && coaster.mainPicture) {
+            let img = new Image();
+            img.src = coaster.mainPicture.url;
+        }
+    });
 }
 
 async function fetchCoaster() {
-  let id = whitelist[Math.floor(Math.random() * whitelist.length)];
-  let response = await fetch(`https://rcdb-api.vercel.app/api/coasters/${id}`);
-  let data = await response.json();
-  if (!data.mainPicture || !data.name || data.name === "Unknown") return fetchCoaster();
-  return data;
+    try {
+        let id = whitelist[Math.floor(Math.random() * whitelist.length)];
+        let response = await fetch(`https://rcdb-api.vercel.app/api/coasters/${id}`);
+        let data = await response.json();
+        if (!data.mainPicture || !data.name || data.name === "Unknown") {
+            return fetchCoaster();
+        }
+        return data;
+    } catch (error) {
+        console.error("Failed to fetch coaster:", error);
+        return null; // Return null on error
+    }
 }
 
 function hasStat(coaster, stat) {
-  let value = getCoasterStat(coaster, stat);
-  return value !== null && value !== undefined && !isNaN(value);
+    if (!coaster) return false;
+    let value = getCoasterStat(coaster, stat);
+    if (stat === "inversions") {
+        return value !== null && !isNaN(value) && value > 0;
+    }
+    return value !== null && !isNaN(value);
 }
 
-function startBattle(first = false) {
-  if (first) {
-    coasterLeft = preloadQueue.shift();
-  } else {
-    coasterLeft = coasterRight;
-  }
+async function startBattle(first = false) {
+    if (isGameOver) return;
+    showLoader();
+    resetTimer();
 
-  let availableStats = stats.filter(stat => stat !== lastStat && hasStat(coasterLeft, stat));
-  if (availableStats.length === 0) availableStats = stats.filter(stat => hasStat(coasterLeft, stat));
+    if (first || !coasterRight) {
+        if (preloadQueue.length < 2) await preloadCoasters(5);
+        coasterLeft = preloadQueue.shift();
+    } else {
+        coasterLeft = coasterRight;
+    }
 
-  currentStat = availableStats[Math.floor(Math.random() * availableStats.length)];
-  lastStat = currentStat;
+    let availableStats = stats.filter(stat => stat !== lastStat && hasStat(coasterLeft, stat));
+    if (availableStats.length === 0) {
+        availableStats = stats.filter(stat => hasStat(coasterLeft, stat));
+    }
+    
+    if (availableStats.length === 0) {
+        if (preloadQueue.length < 2) await preloadCoasters(5);
+        coasterLeft = preloadQueue.shift();
+        startBattle(false);
+        return;
+    }
 
-  do {
-    coasterRight = preloadQueue.shift();
-  } while (!hasStat(coasterRight, currentStat) || getCoasterStat(coasterRight, currentStat) === getCoasterStat(coasterLeft, currentStat));
+    currentStat = availableStats[Math.floor(Math.random() * availableStats.length)];
+    lastStat = currentStat;
 
-  preloadCoasters(4);
-  showCoasters();
+    let retries = 0;
+    do {
+        if (preloadQueue.length < 1) await preloadCoasters(5);
+        coasterRight = preloadQueue.shift();
+        retries++;
+        if (retries > 20) { // Avoid infinite loops
+            console.error("Could not find a suitable coaster pair. Restarting.");
+            startBattle(true);
+            return;
+        }
+    } while (!hasStat(coasterRight, currentStat) || getCoasterStat(coasterRight, currentStat) === getCoasterStat(coasterLeft, currentStat));
+
+    showCoasters();
+    hideLoader();
+    if (gameSettings.timerDuration > 0) startTimer();
 }
 
 function showCoasters() {
-  document.getElementById("stat-name").innerText = "Compare " + formatStatName(currentStat);
-  document.getElementById("coaster-left").style.backgroundImage = `url(${coasterLeft.mainPicture.url})`;
-  document.getElementById("left-stat").innerText = formatStatValue(currentStat, getCoasterStat(coasterLeft, currentStat));
-  document.getElementById("left-name").innerText = coasterLeft.name;
-  document.getElementById("left-creator").innerText = "Photo by " + (coasterLeft.mainPicture.copyName || "Unknown");
+    // Update button text dynamically
+    const labels = statLabels[currentStat] || statLabels.default;
+    document.getElementById('higher').innerText = labels.higher;
+    document.getElementById('lower').innerText = labels.lower;
 
-  document.getElementById("coaster-right").style.backgroundImage = `url(${coasterRight.mainPicture.url})`;
-  document.getElementById("right-stat").innerText = "?";
-  document.getElementById("right-name").innerText = coasterRight.name;
-  document.getElementById("right-creator").innerText = "Photo by " + (coasterRight.mainPicture.copyName || "Unknown");
+    // Update question text with specific overrides
+    let questionText;
+    switch (currentStat) {
+        case 'inversions':
+            questionText = 'Which has more Inversions?';
+            break;
+        case 'capacity':
+            questionText = 'Which has a higher Throughput?';
+            break;
+        case 'verticalAngle':
+            questionText = 'Which has a steeper Drop?';
+            break;
+        default:
+            questionText = `Which is ${labels.higher.split(' ')[0]}?`;
+            break;
+    }
+    document.getElementById("stat-name").innerText = questionText;
 
-  animateFade();
+    document.getElementById("coaster-left").style.backgroundImage = `url(${coasterLeft.mainPicture.url})`;
+    document.getElementById("left-stat").innerText = formatStatValue(currentStat, getCoasterStat(coasterLeft, currentStat));
+    document.getElementById("left-name").innerText = coasterLeft.name;
+    document.getElementById("left-creator").innerText = "Photo by " + (coasterLeft.mainPicture.copyName || "Unknown");
+
+    document.getElementById("coaster-right").style.backgroundImage = `url(${coasterRight.mainPicture.url})`;
+    document.getElementById("right-stat").innerText = "?";
+    document.getElementById("right-name").innerText = coasterRight.name;
+    document.getElementById("right-creator").innerText = "Photo by " + (coasterRight.mainPicture.copyName || "Unknown");
+
+    animateFade();
 }
 
 function getCoasterStat(coaster, stat) {
-  if (stat === "year") {
-    return coaster.status?.date?.opened ? parseInt(coaster.status.date.opened.split("-")[0]) : null;
-  }
-  let value = coaster.stats ? coaster.stats[stat] : null;
-  if (stat === "duration" && value) return value;
-  return value;
+    if (stat === "year") {
+        return coaster.status?.date?.opened ? parseInt(coaster.status.date.opened.split("-")[0]) : null;
+    }
+    return coaster.stats ? coaster.stats[stat] : null;
 }
 
 function formatStatName(stat) {
-  switch (stat) {
-    case "length": return "Length";
-    case "height": return "Height";
-    case "drop": return "Drop";
-    case "speed": return "Speed";
-    case "inversions": return "Inversions";
-    case "verticalAngle": return "Vertical Angle";
-    case "duration": return "Duration";
-    case "capacity": return "Capacity";
-    case "cost": return "Cost";
-    case "year": return "Opening Year";
-    default: return stat;
-  }
+    const names = {
+        length: "Length", height: "Height", drop: "Drop", speed: "Speed",
+        inversions: "Inversions", verticalAngle: "Vertical Angle",
+        duration: "Duration", capacity: "Capacity", cost: "Cost", year: "Opening Year"
+    };
+    return names[stat] || stat;
 }
 
 function formatStatValue(stat, value) {
-  if (value == null) return "Unknown";
-  switch (stat) {
-    case "length": return value + " m";
-    case "height": return value + " m";
-    case "drop": return value + " m";
-    case "speed": return value + " km/h";
-    case "inversions": return value + "x";
-    case "verticalAngle": return value + "°";
-    case "duration": return (value / 60).toFixed(2) + " min";
-    case "capacity": return value + " riders/h";
-    case "cost": return "$" + Number(value * 1000).toLocaleString();
-    case "year": return value;
-    default: return value;
-  }
+    if (value == null) return "Unknown";
+    const units = gameSettings.units;
+    switch (stat) {
+        case "length": return units === 'metric' ? `${value} m` : `${(value * 3.28084).toFixed(0)} ft`;
+        case "height": return units === 'metric' ? `${value} m` : `${(value * 3.28084).toFixed(0)} ft`;
+        case "drop": return units === 'metric' ? `${value} m` : `${(value * 3.28084).toFixed(0)} ft`;
+        case "speed": return units === 'metric' ? `${value} km/h` : `${(value * 0.621371).toFixed(0)} mph`;
+        case "inversions": return `${value}x`;
+        case "verticalAngle": return `${value}°`;
+        case "duration": return `${Math.floor(value / 60)}m ${value % 60}s`;
+        case "capacity": return `${value.toLocaleString()} pph`;
+        case "cost": return `$${(value * 1000).toLocaleString()}`;
+        case "year": return value;
+        default: return value;
+    }
 }
 
 function animateFade() {
-  document.getElementById("coaster-left").classList.add("fade-in");
-  document.getElementById("coaster-right").classList.add("fade-in");
-  setTimeout(() => {
-    document.getElementById("coaster-left").classList.remove("fade-in");
-    document.getElementById("coaster-right").classList.remove("fade-in");
-  }, 500);
+    const left = document.getElementById("coaster-left");
+    const right = document.getElementById("coaster-right");
+    left.classList.remove("fade-in");
+    right.classList.remove("fade-in");
+    setTimeout(() => {
+        left.classList.add("fade-in");
+        right.classList.add("fade-in");
+    }, 10);
 }
 
 document.getElementById("higher").onclick = () => checkAnswer(true);
 document.getElementById("lower").onclick = () => checkAnswer(false);
 
 function checkAnswer(guessHigher) {
-  let left = parseFloat(getCoasterStat(coasterLeft, currentStat));
-  let right = parseFloat(getCoasterStat(coasterRight, currentStat));
-  if (isNaN(left) || isNaN(right)) {
-    startBattle();
-    return;
-  }
-  document.getElementById("right-stat").innerText = formatStatValue(currentStat, right);
-  if ((guessHigher && right > left) || (!guessHigher && right < left)) {
-    score++;
-    bestScore = Math.max(score, bestScore);
-    sessionStorage.setItem('bestScore', bestScore);
-    showNotification("Correct!", "lime");
-  } else {
-    score = 0;
-    showNotification("Wrong!", "red");
-  }
-  updateScores();
-  setTimeout(() => startBattle(false), 1000);
+    if (isGameOver) return;
+    
+    resetTimer();
+    let left = parseFloat(getCoasterStat(coasterLeft, currentStat));
+    let right = parseFloat(getCoasterStat(coasterRight, currentStat));
+
+    if (isNaN(left) || isNaN(right)) {
+        startBattle();
+        return;
+    }
+
+    document.getElementById("right-stat").innerText = formatStatValue(currentStat, right);
+    
+    if ((guessHigher && right > left) || (!guessHigher && right < left)) {
+        score++;
+        bestScore = Math.max(score, bestScore);
+        localStorage.setItem('bestScore', bestScore);
+        showNotification("Correct!", "lime");
+        setTimeout(() => startBattle(false), 1200);
+    } else {
+        showNotification("Wrong!", "red");
+        gameOver();
+    }
+    updateScores();
+}
+
+function gameOver() {
+    isGameOver = true;
+    document.getElementById("final-score").innerText = score;
+    document.getElementById("go-left-name").innerText = coasterLeft.name;
+    document.getElementById("go-left-stat").innerText = `${formatStatName(currentStat)}: ${formatStatValue(currentStat, getCoasterStat(coasterLeft, currentStat))}`;
+    document.getElementById("go-left-link").href = `https://rcdb.com/${coasterLeft.id}.htm`;
+    document.getElementById("go-right-name").innerText = coasterRight.name;
+    document.getElementById("go-right-stat").innerText = `${formatStatName(currentStat)}: ${formatStatValue(currentStat, getCoasterStat(coasterRight, currentStat))}`;
+    document.getElementById("go-right-link").href = `https://rcdb.com/${coasterRight.id}.htm`;
+
+    if (score > 5) { // Changed from >10 to >5
+        copyScoreButton.style.display = 'inline-block';
+    }
+
+    setTimeout(() => {
+        gameOverModal.style.display = "flex";
+    }, 800);
 }
 
 function updateScores() {
-  document.getElementById("score").innerText = score;
-  document.getElementById("bestScore").innerText = bestScore;
+    document.getElementById("score").innerText = score;
+    document.getElementById("bestScore").innerText = bestScore;
 }
 
 function showNotification(text, color) {
-  let notif = document.getElementById("notification");
-  notif.innerText = text;
-  notif.style.color = color;
-  notif.style.opacity = 1;
-  setTimeout(() => {
-    notif.style.opacity = 0;
-  }, 800);
+    let notif = document.getElementById("notification");
+    notif.innerText = text;
+    notif.style.color = color;
+    notif.classList.add("show");
+    setTimeout(() => {
+        notif.classList.remove("show");
+    }, 1000);
 }
 
-preloadCoasters(4).then(() => startBattle(true));
+// Timer Functions
+function startTimer() {
+    const duration = gameSettings.timerDuration;
+    if (duration <= 0) return;
+
+    timerBarContainer.style.display = 'block';
+    timerBar.style.transition = 'none';
+    timerBar.style.width = '100%';
+    
+    setTimeout(() => {
+        timerBar.style.transition = `width ${duration}s linear`;
+        timerBar.style.width = '0%';
+    }, 50);
+
+    timerInterval = setTimeout(() => {
+        showNotification("Time's up!", "red");
+        gameOver();
+    }, duration * 1000);
+}
+
+function resetTimer() {
+    clearInterval(timerInterval);
+    timerBarContainer.style.display = 'none';
+    timerBar.style.transition = 'none';
+}
+
+
+// Settings Modal Logic
+settingsIcon.onclick = () => settingsModal.style.display = "flex";
+closeModalButton.onclick = () => settingsModal.style.display = "none";
+window.onclick = (event) => {
+    if (event.target == settingsModal) {
+        settingsModal.style.display = "none";
+    }
+};
+
+unitsSelect.onchange = (e) => {
+    gameSettings.units = e.target.value;
+    if (coasterLeft) {
+        document.getElementById("left-stat").innerText = formatStatValue(currentStat, getCoasterStat(coasterLeft, currentStat));
+    }
+};
+
+timerSlider.oninput = (e) => {
+    let value = e.target.value;
+    gameSettings.timerDuration = parseInt(value);
+    timerValue.innerText = value > 0 ? `${value}s` : 'Off';
+};
+
+
+// Game Over and Copy Score Logic
+playAgainButton.onclick = () => {
+    score = 0;
+    isGameOver = false;
+    gameOverModal.style.display = "none";
+    copyScoreButton.style.display = 'none'; // Hide button on restart
+    copyScoreButton.innerHTML = '<i class="fab fa-discord"></i> Copy Score for Discord'; // Reset button text
+    updateScores();
+    startBattle(true);
+};
+
+copyScoreButton.onclick = () => {
+    const message = `I just scored ${score} points in Coaster-Battle! 🎢 Can you beat my score?\nPlay here: ${window.location.href}`;
+    navigator.clipboard.writeText(message).then(() => {
+        copyScoreButton.innerText = 'Copied to Clipboard!';
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        copyScoreButton.innerText = 'Failed to Copy';
+    });
+};
+
+// Initial Load
+updateScores();
+startBattle(true);
