@@ -1,1 +1,8 @@
 .vercel
+
+# Environment variables
+.env
+
+# Secret config files
+config.js
+firebase-config.js
