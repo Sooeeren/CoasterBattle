@@ -19,7 +19,7 @@ let gameSettings = {
     units: 'metric',
     timerDuration: 0,
     imageDarkness: 5,
-    activeStats: Object.keys(stats).filter(s => s !== 'cost'),
+    activeStats: Object.keys(stats), // Habilitado 'cost' por defecto
     hardMode: false,
     similarMode: false,
     similarDifficulty: 5,
@@ -106,7 +106,7 @@ function loadSettings() {
         gameSettings = { ...gameSettings, ...loaded };
 
         if (!gameSettings.activeStats || gameSettings.activeStats.length === 0) {
-            gameSettings.activeStats = Object.keys(stats).filter(s => s !== 'cost');
+            gameSettings.activeStats = Object.keys(stats);
         }
         activeStats = [...gameSettings.activeStats];
     }
@@ -147,10 +147,9 @@ function populateStatFilters() {
     for (const statKey in stats) {
         const option = document.createElement('div');
         option.className = 'filter-option';
-        const isEnabled = statKey !== 'cost';
-        if (!isEnabled) option.classList.add('disabled');
+        // Removida lógica de disabled para 'cost'
         option.innerHTML = `
-            <input type="checkbox" id="filter-${statKey}" data-stat="${statKey}" class="stat-filter-checkbox" ${activeStats.includes(statKey) && isEnabled ? 'checked' : ''} ${!isEnabled ? 'disabled' : ''}>
+            <input type="checkbox" id="filter-${statKey}" data-stat="${statKey}" class="stat-filter-checkbox" ${activeStats.includes(statKey) ? 'checked' : ''}>
             <label for="filter-${statKey}">${stats[statKey]}</label>
         `;
         statFiltersContainer.appendChild(option);
@@ -173,8 +172,8 @@ function checkFilterState() {
       if (checkedBoxes.length === 1) {
           checkedBoxes[0].disabled = true;
       } else {
-          document.querySelectorAll('.stat-filter-checkbox:disabled').forEach(cb => {
-              if (cb.dataset.stat !== 'cost') cb.disabled = false;
+          document.querySelectorAll('.stat-filter-checkbox').forEach(cb => {
+              cb.disabled = false;
           });
       }
 }
@@ -223,6 +222,11 @@ async function fetchValidCoaster() {
         const hasAnyStat = activeStats.some(stat => hasStat(data, stat));
 
         if (hasPicture && hasName && hasPark && hasAnyStat) {
+            if (activeStats.includes('cost') && data.stats?.cost && data.country) {
+                const conversion = await detectCurrencyAndConvert(data.country, data.stats.cost);
+                data.convertedCost = conversion?.ok ? conversion.converted : data.stats.cost;
+                if (gameSettings.debugMode) console.log(`Converted cost for ${data.name}: ${data.stats.cost} -> ${data.convertedCost} USD (country: ${data.country})`);
+            }
             return data;
         } else {
             if (gameSettings.debugMode) console.log(`Coaster ID ${id} (${data.name}) is invalid, skipping. Picture: ${!!hasPicture}, Name: ${!!hasName}, Park: ${!!hasPark}, Stat: ${!!hasAnyStat}`);
@@ -313,11 +317,18 @@ async function startBattle(first = false) {
                     const invThreshold = Math.ceil(difficulty / 2.5); 
                     isSimilar = difference <= invThreshold;
                     break;
-                default:
+                case 'cost': {
                     const percentThreshold = difficulty * 2;
                     const thresholdValue = leftStatVal * (percentThreshold / 100);
                     isSimilar = difference <= thresholdValue;
                     break;
+                }
+                default: {
+                    const percentThreshold = difficulty * 2;
+                    const thresholdValue = leftStatVal * (percentThreshold / 100);
+                    isSimilar = difference <= thresholdValue;
+                    break;
+                }
             }
             if (!isSimilar) continue;
         }
@@ -358,18 +369,156 @@ function getCoasterStat(coaster, stat) {
     if (stat === "year") {
         return coaster.status?.date?.opened ? parseInt(coaster.status.date.opened.split("-")[0]) : null;
     }
+    if (stat === "cost") {
+        return coaster.convertedCost ?? coaster.stats?.[stat] ?? null;
+    }
     return coaster.stats ? coaster.stats[stat] : null;
 }
 
-function formatCurrency(valueInThousands) {
-    if (!valueInThousands || valueInThousands <= 0) return "Unknown";
-    const totalValue = valueInThousands * 1000;
+function formatCurrency(value) {
+    if (!value || value <= 0) return "Unknown";
+    const totalValue = value; // Valor directo, no *1000
     if (totalValue >= 1000000) {
         const millions = totalValue / 1000000;
-        return `$${parseFloat(millions.toFixed(2)).toString()} Million`;
+        return `$${millions.toFixed(1)}M`;
     }
     return `$${totalValue.toLocaleString('en-US')}`;
 }
+
+//Currency detection & conversion helpers 
+
+const currencyCacheKey = 'currencyCache_v1';
+const rateCacheKey = 'fxRateCache_v1';
+const CACHE_TTL_MS = 1000 * 60 * 60; // 1 hora
+
+function _loadCache(key) {
+    try {
+        const raw = sessionStorage.getItem(key);
+        return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function _saveCache(key, obj) {
+    try { sessionStorage.setItem(key, JSON.stringify(obj)); } catch(e){}
+}
+
+async function detectCurrencyByCountry(input) {
+    // input puede ser nombre del país o código ISO (2/3 letras)
+    if (!input) return null;
+    const cache = _loadCache(currencyCacheKey);
+    const key = input.toString().toLowerCase();
+    if (cache[key] && (Date.now() - cache[key].ts) < CACHE_TTL_MS) return cache[key].currency;
+
+    try {
+        let url;
+        // Primero intenta alpha si parece un código, si falla prueba por nombre
+        if (/^[a-z]{2,3}$/i.test(input)) {
+            url = `https://restcountries.com/v3.1/alpha/${encodeURIComponent(input)}`;
+            let res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                const country = Array.isArray(data) ? data[0] : data;
+                if (country && country.currencies) {
+                    const currencyCodes = Object.keys(country.currencies);
+                    const currency = currencyCodes && currencyCodes.length ? currencyCodes[0] : null;
+                    cache[key] = { currency, ts: Date.now() };
+                    _saveCache(currencyCacheKey, cache);
+                    return currency;
+                }
+            }
+            // si alpha falló, continua y prueba por nombre
+        }
+        url = `https://restcountries.com/v3.1/name/${encodeURIComponent(input)}?fullText=false`;
+        const res2 = await fetch(url);
+        if (!res2.ok) {
+            if (gameSettings.debugMode) console.warn(`restcountries lookup failed for "${input}" (status ${res2.status})`);
+            return null;
+        }
+        const data2 = await res2.json();
+        const country2 = Array.isArray(data2) ? data2[0] : data2;
+        if (!country2 || !country2.currencies) {
+            if (gameSettings.debugMode) console.warn(`restcountries returned no currency for "${input}"`);
+            return null;
+        }
+        const currencyCodes2 = Object.keys(country2.currencies);
+        const currency2 = currencyCodes2 && currencyCodes2.length ? currencyCodes2[0] : null;
+        cache[key] = { currency: currency2, ts: Date.now() };
+        _saveCache(currencyCacheKey, cache);
+        return currency2;
+    } catch (err) {
+        console.error('detectCurrencyByCountry error', err);
+        return null;
+    }
+}
+
+async function getExchangeRate(fromCurrency, toCurrency = 'USD') {
+    if (!fromCurrency) return null;
+    fromCurrency = fromCurrency.toUpperCase();
+    toCurrency = toCurrency.toUpperCase();
+    if (fromCurrency === toCurrency) return 1;
+
+    const cache = _loadCache(rateCacheKey);
+    const key = `${fromCurrency}_${toCurrency}`.toUpperCase();
+    if (cache[key] && (Date.now() - cache[key].ts) < CACHE_TTL_MS) return cache[key].rate;
+
+    try {
+        const url = `https://open.er-api.com/v6/latest/${fromCurrency}`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const json = await res.json();
+        if (json.result !== "success") return null;
+        let rate = json.rates && json.rates[toCurrency];
+        if (rate == null || isNaN(rate)) return null;
+        rate = Number(rate);
+        cache[key] = { rate, ts: Date.now() };
+        _saveCache(rateCacheKey, cache);
+        return rate;
+    } catch (err) {
+        console.error('getExchangeRate error', err);
+        return null;
+    }
+}
+
+async function convertCurrency(amount, fromCurrency, toCurrency = 'USD') {
+    if (amount == null || isNaN(Number(amount))) return null;
+    const rate = await getExchangeRate(fromCurrency, toCurrency);
+    if (rate == null) return null;
+    return Number(amount) * Number(rate);
+}
+
+async function detectCurrencyAndConvert(countryInput, amount) {
+    try {
+        const currency = await detectCurrencyByCountry(countryInput);
+        if (!currency) return { ok: false, reason: 'currency_not_found', countryInput };
+        const rate = await getExchangeRate(currency, 'USD');
+        if (rate == null) return { ok: false, reason: 'rate_not_found', currency };
+        const converted = await convertCurrency(amount, currency, 'USD');
+        if (converted == null) return { ok: false, reason: 'conversion_failed', currency };
+        return { ok: true, currency, amount, converted, rate };
+    } catch (err) {
+        console.error('detectCurrencyAndConvert error', err);
+        return { ok: false, reason: 'exception', message: err && err.message };
+    }
+}
+
+window.detectCurrencyByCountry = detectCurrencyByCountry;
+window.getExchangeRate = getExchangeRate;
+window.convertCurrency = convertCurrency;
+window.detectCurrencyAndConvert = detectCurrencyAndConvert;
+
+window.detectCurrencyAndConvertLog = function(countryInput, amount) {
+    detectCurrencyAndConvert(countryInput, amount).then(result => {
+        if (!result) return console.log('No result (null) from detectCurrencyAndConvert');
+        if (!result.ok) {
+            console.warn('Conversion failed:', result);
+        } else {
+            console.log(`${amount} in ${result.currency} ≈ $${result.converted.toFixed(2)} (rate ${result.rate})`);
+        }
+    }).catch(err => console.error('detectCurrencyAndConvertLog error', err));
+};
+
 
 function formatStatValue(stat, value) {
     if (value == null) return "Unknown";
