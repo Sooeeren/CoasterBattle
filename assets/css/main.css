@@ -1,4 +1,9 @@
 /* --- Global Styles --- */
+:root {
+    /* The default darkness is now set in JS, but this can be a fallback */
+    --image-darken-amount: rgba(0, 0, 0, 0.0);
+}
+
 body,
 html {
     margin: 0;
@@ -9,7 +14,7 @@ html {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: black;
     color: white;
-    -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
 }
 
 * {
@@ -70,13 +75,21 @@ html {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 40%),
-                linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, transparent 30%);
+    background: 
+        linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 40%),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, transparent 30%),
+        var(--image-darken-amount);
+    transition: background 0.3s; /* Smooth transition for darkness change */
+}
+
+/* 3. Removes all overlays when darkness is 0% */
+body.no-vignette .coaster-side::before {
+    background: var(--image-darken-amount);
 }
 
 
 /* --- Text Overlays --- */
-.creator-overlay, .name-overlay, .stat-overlay {
+.creator-overlay, .name-overlay, .park-overlay, .stat-overlay {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -93,9 +106,16 @@ html {
 }
 
 .name-overlay {
-    bottom: 70px;
+    bottom: 80px;
     font-size: 2em;
     font-weight: bold;
+}
+
+.park-overlay {
+    bottom: 60px;
+    font-size: 1em;
+    font-style: italic;
+    opacity: 0.9;
 }
 
 .stat-overlay {
@@ -299,6 +319,20 @@ html {
     font-size: 1.1em;
 }
 
+.setting-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.setting-option label small {
+    font-size: 0.7em;
+    opacity: 0.6;
+    font-weight: normal;
+    margin-top: 3px;
+}
+
 .setting-option select {
     font-size: 1em;
     background: #444;
@@ -308,14 +342,68 @@ html {
     padding: 5px;
 }
 
-#timer-slider {
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
     flex-grow: 1;
     margin: 0 15px;
+    height: 8px;
+    border-radius: 4px;
 }
 
-#timer-value {
-    width: 40px;
+input[type="range"]::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: transparent;
+}
+input[type="range"]::-moz-range-track {
+    -moz-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: transparent;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -6px;
+    background-color: #4da6ff;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    border: 2px solid white;
+    transition: background-color 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+    background-color: #8cc8ff;
+}
+input[type="range"]::-moz-range-thumb {
+    border: none;
+    border-radius: 50%;
+    background-color: #4da6ff;
+    height: 20px;
+    width: 20px;
+    border: 2px solid white;
+    transition: background-color 0.2s;
+}
+input[type="range"]::-moz-range-thumb:hover {
+    background-color: #8cc8ff;
+}
+
+#timer-value, #darken-value {
+    width: 45px;
     text-align: right;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
 }
 
 .github-button {
@@ -325,7 +413,6 @@ html {
     color: white;
     padding: 10px 15px;
     border-radius: 8px;
-    margin-top: 15px;
     transition: background-color 0.3s;
 }
 .github-button:hover {
@@ -333,6 +420,16 @@ html {
 }
 .github-button i {
     margin-right: 8px;
+}
+
+#suggest-coaster-button {
+    background-color: #444;
+    color: #888;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1em;
+    cursor: not-allowed;
 }
 
 /* Stat Filters */
@@ -359,6 +456,7 @@ html {
 .filter-option label {
     margin-left: 8px;
     cursor: pointer;
+    flex-direction: row;
 }
 .filter-option input[type="checkbox"] {
     width: 18px;
@@ -368,6 +466,41 @@ html {
 .filter-option input[type="checkbox"]:disabled + label {
     opacity: 0.5;
     cursor: not-allowed;
+}
+.filter-option input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}
+.filter-option.disabled {
+    background: #333;
+    opacity: 0.6;
+}
+
+.toggle-switch {
+    appearance: none;
+    width: 40px;
+    height: 22px;
+    background-color: #555;
+    border-radius: 11px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+}
+.toggle-switch:checked {
+    background-color: #4da6ff;
+}
+.toggle-switch:checked::before {
+    transform: translateX(18px);
 }
 
 
@@ -480,12 +613,10 @@ html {
         background: rgba(0, 0, 0, 0.5);
     }
 
-    .name-overlay {
-        font-size: 1.3em;
-    }
-    .stat-overlay {
-        font-size: 1.2em;
-    }
+    .name-overlay { font-size: 1.3em; bottom: 65px; }
+    .park-overlay { font-size: 0.8em; bottom: 45px; }
+    .stat-overlay { font-size: 1.2em; }
+
     .controls button {
         font-size: 1em;
         padding: 10px 20px;
@@ -537,6 +668,10 @@ html {
     #coaster-left .name-overlay {
         bottom: auto;
         top: 50px;
+    }
+    #coaster-left .park-overlay {
+        bottom: auto;
+        top: 80px; 
     }
     #coaster-left .stat-overlay {
         bottom: auto;

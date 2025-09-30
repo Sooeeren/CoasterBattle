@@ -44,12 +44,37 @@
                 <input type="range" id="timer-slider" min="0" max="20" value="0" step="1">
                 <span id="timer-value">Off</span>
             </div>
+            <div class="setting-option">
+                <label for="darken-slider">Image Darkness:</label>
+                <input type="range" id="darken-slider" min="0" max="80" value="5" step="5">
+                <span id="darken-value">5%</span>
+            </div>
+            <div class="setting-option">
+                <label for="hard-mode">Hard Mode (All Coasters):<small>(may increase loading times)</small></label>
+                <input type="checkbox" id="hard-mode" class="toggle-switch">
+            </div>
+             <div class="setting-option">
+                <label for="similar-mode">Similar Stats Mode:<small>(may increase loading times)</small></label>
+                <input type="checkbox" id="similar-mode" class="toggle-switch">
+            </div>
+            <div class="setting-option">
+                <label for="similar-difficulty-slider">Similar Mode Difficulty:</label>
+                <input type="range" id="similar-difficulty-slider" min="1" max="10" value="5" step="1">
+                <span id="similar-difficulty-value">5</span>
+            </div>
+            <div class="setting-option">
+                <label for="debug-mode">Debug Mode:<small>(logs game data to console)</small></label>
+                <input type="checkbox" id="debug-mode" class="toggle-switch">
+            </div>
             <div class="stat-filter-container">
                 <h3>Enabled Stats</h3>
                 <div id="stat-filters" class="stat-filters">
-                    </div>
+                </div>
             </div>
-             <a href="https://github.com/sooeeren" target="_blank" class="github-button"><i class="fab fa-github"></i> View on GitHub</a>
+            <div class="modal-buttons">
+                <a href="https://github.com/sooeeren" target="_blank" class="github-button"><i class="fab fa-github"></i> View on GitHub</a>
+                <button id="suggest-coaster-button" disabled>Suggest a Coaster (Soon)</button>
+            </div>
         </div>
     </div>
 
@@ -94,6 +119,7 @@
         <div id="coaster-left" class="coaster-side">
             <div class="creator-overlay" id="left-creator"></div>
             <div class="name-overlay" id="left-name"></div>
+            <div class="park-overlay" id="left-park"></div>
             <div class="stat-overlay" id="left-stat"></div>
         </div>
         <div class="controls">
@@ -107,6 +133,7 @@
         <div id="coaster-right" class="coaster-side">
             <div class="creator-overlay" id="right-creator"></div>
             <div class="name-overlay" id="right-name"></div>
+            <div class="park-overlay" id="right-park"></div>
             <div class="stat-overlay" id="right-stat">?</div>
         </div>
     </div>
