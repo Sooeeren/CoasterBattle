@@ -1,33 +1,23 @@
-// --- Global State & Constants ---
-let isPreloading = false; // A flag to prevent multiple preload loops
+// --- CONFIGURATION & GLOBAL STATE ---
 
-const whitelist = [1, 3, 5, 7, 10, 11, 12, 13, 17, 18, 22, 24, 25, 28, 29, 30, 31, 32, 35, 37, 40, 4173, 615, 130, 129, 470, 2169, 140, 3305, 12282, 16588, 19515, 750, 526, 15413, 291, 4089, 3704, 2536, 1574, 20275, 14683, 17030, 2079, 9819, 70, 2860, 6640, 73, 67, 4253, 66, 1037, 530, 14116, 11437, 92, 3302, 4079, 138, 90, 4520, 15028, 10891, 3570, 594, 15411, 13383, 20342, 582, 136, 12260, 3231, 741, 270, 460, 2722, 285, 552, 99, 281, 11662, 4042, 742, 16676, 7982, 172, 12941, 173, 9456, 12781, 16985, 94, 87, 95, 2662, 16607, 17420, 1904, 581, 12758, 4190, 20042, 197, 17035, 11579, 196, 3534, 2164, 198, 139, 104, 11450, 747, 9972, 14187, 16586, 535, 1977, 113, 10137, 16682, 4049, 468, 109, 10089, 108, 2498, 107, 20462, 3866, 15330, 557, 703, 6992, 278, 3635, 532, 17278, 14302, 76, 80, 10857, 77, 79, 15412, 16587, 357, 1143, 13422, 163, 617, 17660, 10139, 15410, 1862, 447, 4155, 178, 18691, 176, 550, 1659, 256, 255, 254, 586, 153, 4191, 155, 18398, 20336, 12896, 214, 16885, 212, 653, 469, 3244, 4296, 2572, 20340, 1455, 1903, 220, 15168, 720, 20328, 501, 16124, 6691, 13369, 3609, 534, 2451, 10148, 527, 81, 83, 16349, 4269, 12273, 85, 8588, 1897, 2514, 1478, 86, 2508, 101, 3727, 19332, 3183, 8932, 17658, 13421, 2832, 502, 1106, 131, 1976, 16793, 15594, 158, 408, 13346, 202, 200, 201, 732, 731, 273, 9720, 15286, 2389, 15504, 560, 13377, 602, 12897, 432, 143, 1549, 629, 9431, 14189, 3031, 429, 628, 182, 1981, 218, 537, 478, 4053, 219, 415, 264, 2214, 262, 431, 298, 9517, 123, 538, 120, 121, 8612, 16479, 122, 2657, 3917, 377, 1089, 10136, 544, 6765, 485, 699, 148, 277, 531, 7706, 3631, 8027, 110, 16812, 12277, 9463, 337, 14400, 421, 42, 9430, 556, 3290, 41, 1568, 15457, 542, 422, 209, 210, 19510, 161, 2667, 280, 18816, 21145, 21070, 21085, 21034, 21221, 3254, 1190, 9975, 3117, 15201, 12723, 1235, 1412, 1747, 4162, 3081, 9820, 1458, 777, 2787, 11062, 2472, 15029, 12959, 1845, 12272, 15561, 15515, 1178, 1173, 15562, 17412, 12362, 14462, 16184, 13637, 10154, 2999, 12083, 4526, 897, 770, 1565, 12315, 773, 16047, 769, 14717, 3589, 2747, 10333, 1028, 1414, 4074, 972, 971, 1891, 10018, 1043, 3245, 20266, 1042, 9863, 9040, 4224, 15502, 6764, 12413, 16308, 10077, 17725, 4181, 7645, 16138, 9206, 1073, 3916, 3613, 3938, 12771, 753, 9675, 752, 16327, 1038, 12032, 20019, 1368, 1365, 1369, 1366, 977, 6736, 10239, 762, 760, 3430, 759, 11615, 4075, 981, 982, 11034, 3849, 19160, 4485, 12772, 12575, 3573, 4308, 17570, 1258, 1290, 1218, 1183, 2424, 3621, 1208, 1259, 4038, 1463, 14084, 11058, 19376, 4090, 10902, 2482, 1562, 11048, 1061, 14301, 4147, 10393, 764, 765, 12027, 17866, 14312, 789, 775, 792, 3672, 788, 10698, 11057, 17715, 1011, 4065, 4225, 4150, 3799, 10748, 1227, 9647, 1054, 2054, 12050, 14011, 956, 957, 959, 1444, 15063, 4274, 3617, 11664, 2829, 639, 10972, 15460, 580, 10108, 2861, 64, 4005, 58, 57, 59, 2516, 65, 60, 12140, 16021, 320, 3385, 187, 8662, 186, 1567, 967, 966, 969, 13796, 988, 986, 984, 6667, 9097, 987, 11056, 18358, 1093, 2199, 15212, 4309, 9352, 1651, 11346, 6489, 16310, 16314, 16318, 10983, 10741, 11152, 11550, 11333, 8994, 9114, 18718, 13876, 843, 1413, 12364, 2721, 2749, 1525, 20890, 2956, 10523, 4154, 12098, 3657, 1155, 1322, 1321, 1154, 4149, 1152, 1150, 1168, 1169, 1481, 20652];
+// Flags & Game State
+let isPreloading = false;
+let isGameOver = false;
+let score = 0;
+let bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
+let currentStat = "";
+let lastStat = "";
+let coasterLeft, coasterRight;
 let preloadQueue = [];
+let timerInterval;
+
+// Game Data & Constants
+const whitelist = [1, 3, 5, 7, 10, 11, 12, 13, 17, 18, 22, 24, 25, 28, 29, 30, 31, 32, 35, 37, 40, 4173, 615, 130, 129, 470, 2169, 140, 3305, 12282, 16588, 19515, 750, 526, 15413, 291, 4089, 3704, 2536, 1574, 20275, 14683, 17030, 2079, 9819, 70, 2860, 6640, 73, 67, 4253, 66, 1037, 530, 14116, 11437, 92, 3302, 4079, 138, 90, 4520, 15028, 10891, 3570, 594, 15411, 13383, 20342, 582, 136, 12260, 3231, 741, 270, 460, 2722, 285, 552, 99, 281, 11662, 4042, 742, 16676, 7982, 172, 12941, 173, 9456, 12781, 16985, 94, 87, 95, 2662, 16607, 17420, 1904, 581, 12758, 4190, 20042, 197, 17035, 11579, 196, 3534, 2164, 198, 139, 104, 11450, 747, 9972, 14187, 16586, 535, 1977, 113, 10137, 16682, 4049, 468, 109, 10089, 108, 2498, 107, 20462, 3866, 15330, 557, 703, 6992, 278, 3635, 532, 17278, 14302, 76, 80, 10857, 77, 79, 15412, 16587, 357, 1143, 13422, 163, 617, 17660, 10139, 15410, 1862, 447, 4155, 178, 18691, 176, 550, 1659, 256, 255, 254, 586, 153, 4191, 155, 18398, 20336, 12896, 214, 16885, 212, 653, 469, 3244, 4296, 2572, 20340, 1455, 1903, 220, 15168, 720, 20328, 501, 16124, 6691, 13369, 3609, 534, 2451, 10148, 527, 81, 83, 16349, 4269, 12273, 85, 8588, 1897, 2514, 1478, 86, 2508, 101, 3727, 19332, 3183, 8932, 17658, 13421, 2832, 502, 1106, 131, 1976, 16793, 15594, 158, 408, 13346, 202, 200, 201, 732, 731, 273, 9720, 15286, 2389, 15504, 560, 13377, 602, 12897, 432, 143, 1549, 629, 9431, 14189, 3031, 429, 628, 182, 1981, 218, 537, 478, 4053, 219, 415, 264, 2214, 262, 431, 298, 9517, 123, 538, 120, 121, 8612, 16479, 122, 2657, 3917, 377, 1089, 10136, 544, 6765, 485, 699, 148, 277, 531, 7706, 3631, 8027, 110, 16812, 12277, 9463, 337, 14400, 421, 42, 9430, 556, 3290, 41, 1568, 15457, 542, 422, 209, 210, 19510, 161, 2667, 280, 18816, 21145, 21070, 21085, 21034, 21221, 3254, 1190, 9975, 3117, 15201, 12723, 1235, 1412, 1747, 4162, 3081, 9820, 1458, 777, 2787, 11062, 2472, 15029, 12959, 1845, 12272, 15561, 15515, 1178, 1173, 15562, 17412, 12362, 14462, 16184, 13637, 10154, 2999, 12083, 4526, 897, 770, 1565, 12315, 773, 16047, 769, 14717, 3589, 2747, 10333, 1028, 1414, 4074, 972, 971, 1891, 10018, 1043, 3245, 20266, 1042, 9863, 9040, 4224, 15502, 6764, 12413, 16308, 10077, 17725, 4181, 7645, 16138, 9206, 1073, 3916, 3613, 3938, 12771, 753, 9675, 752, 16327, 1038, 12032, 20019, 1368, 1365, 1369, 1366, 977, 6736, 10239, 762, 760, 3430, 759, 11615, 4075, 981, 982, 11034, 3849, 19160, 4485, 12772, 12575, 3573, 4308, 17570, 1258, 1290, 1218, 1183, 2424, 3621, 1208, 1259, 4038, 1463, 14084, 11058, 19376, 4090, 10902, 2482, 1562, 11048, 1061, 14301, 4147, 10393, 764, 765, 12027, 17866, 14312, 789, 775, 792, 3672, 788, 10698, 11057, 17715, 1011, 4065, 4225, 4150, 3799, 10748, 1227, 9647, 1054, 2054, 12050, 14011, 956, 957, 959, 1444, 15063, 4274, 3617, 11664, 2829, 639, 10972, 15460, 580, 10108, 2861, 64, 4005, 58, 57, 59, 2516, 65, 60, 12140, 16021, 320, 3385, 187, 8662, 186, 1567, 967, 966, 969, 13796, 988, 986, 984, 6667, 9097, 987, 11056, 18358, 1093, 2199, 15212, 4309, 9352, 1651, 11346, 6489, 16310, 16314, 16318, 10983, 10741, 11152, 11550, 11333, 8994, 9114, 18718, 13876, 843, 1413, 12364, 2721, 2749, 1525, 20890, 2956, 10523, 4154, 12098, 3657, 1155, 1322, 1321, 1154, 4149, 1152, 1150, 1168, 1169, 1481, 20652];
 const stats = {
     length: "Length", height: "Height", drop: "Drop", speed: "Speed", 
     inversions: "Inversions", verticalAngle: "Vertical Angle", duration: "Duration", 
     capacity: "Capacity", year: "Year", cost: "Cost"
 };
-let activeStats = Object.keys(stats);
-let currentStat = "";
-let coasterLeft, coasterRight;
-let score = 0;
-let bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
-let lastStat = "";
-let isGameOver = false;
-let gameSettings = {
-    units: 'metric',
-    timerDuration: 0,
-    imageDarkness: 5,
-    activeStats: Object.keys(stats), // Habilitado 'cost' por defecto
-    hardMode: false,
-    similarMode: false,
-    similarDifficulty: 5,
-    preloadTarget: 5,
-    debugMode: false
-};
-let timerInterval;
-
 const statLabels = {
     default: { higher: 'Higher ▲', lower: 'Lower ▼' },
     length: { higher: 'Longer ▲', lower: 'Shorter ▼' },
@@ -41,7 +31,6 @@ const statLabels = {
     year: { higher: 'Newer ▲', lower: 'Older ▼' },
     verticalAngle: { higher: 'Steeper ▲', lower: 'Less Steep ▼' }
 };
-
 const questionPhrases = {
     length: "is longer or shorter",
     height: "is taller or shorter",
@@ -55,14 +44,39 @@ const questionPhrases = {
     verticalAngle: "has a steeper or less steep drop",
     default: "has a higher or lower value"
 };
+const currencyHelpersConfig = {
+    get debug() {
+        return window.gameSettings && window.gameSettings.debugMode;
+    },
+    countryMap: {
+        "osaka": "Japan",
+        "england": "united kingdom"
+    }
+};
 
-// DOM Elements
+// Default Settings
+let gameSettings = {
+    units: 'metric',
+    currency: 'USD', // NEW: Added currency setting
+    timerDuration: 0,
+    imageDarkness: 5,
+    activeStats: Object.keys(stats),
+    hardMode: false,
+    similarMode: false,
+    similarDifficulty: 5,
+    preloadTarget: 5,
+    debugMode: false
+};
+let activeStats = Object.keys(stats);
+
+// --- DOM ELEMENT REFERENCES ---
 const body = document.body;
 const loader = document.getElementById("loader");
 const settingsIcon = document.getElementById("settings-icon");
 const settingsModal = document.getElementById("settings-modal");
 const closeModalButton = document.querySelector(".close-button");
 const unitsSelect = document.getElementById("units");
+const currencySelect = document.getElementById("currency-select"); // NEW: Currency dropdown
 const timerSlider = document.getElementById("timer-slider");
 const timerValue = document.getElementById("timer-value");
 const darkenSlider = document.getElementById("darken-slider");
@@ -83,6 +97,9 @@ const leaderboardIcon = document.getElementById('leaderboard-icon');
 const leaderboardModal = document.getElementById('leaderboard-modal');
 const closeLeaderboardButton = document.querySelector('.close-leaderboard-button');
 const statFiltersContainer = document.getElementById('stat-filters');
+
+
+// --- CORE FUNCTIONS ---
 
 // --- Settings Management ---
 function updateSliderBackground(slider) {
@@ -112,6 +129,7 @@ function loadSettings() {
     }
     
     unitsSelect.value = gameSettings.units;
+    currencySelect.value = gameSettings.currency; // NEW: Load currency setting
     timerSlider.value = gameSettings.timerDuration;
     timerValue.innerText = gameSettings.timerDuration > 0 ? `${gameSettings.timerDuration}s` : 'Off';
     
@@ -147,7 +165,6 @@ function populateStatFilters() {
     for (const statKey in stats) {
         const option = document.createElement('div');
         option.className = 'filter-option';
-        // Removida lógica de disabled para 'cost'
         option.innerHTML = `
             <input type="checkbox" id="filter-${statKey}" data-stat="${statKey}" class="stat-filter-checkbox" ${activeStats.includes(statKey) ? 'checked' : ''}>
             <label for="filter-${statKey}">${stats[statKey]}</label>
@@ -178,16 +195,136 @@ function checkFilterState() {
       }
 }
 
+// --- Currency Detection & Conversion Helpers ---
+const CACHE_TTL_MS = 1000 * 60 * 60;
+
+function _loadCache(key) {
+    try {
+        const raw = sessionStorage.getItem(key);
+        if (!raw) return {};
+        const cache = JSON.parse(raw);
+        return (typeof cache === 'object' && cache !== null) ? cache : {};
+    } catch (e) {
+        if (currencyHelpersConfig.debug) console.warn("Could not load cache:", e.message);
+        return {};
+    }
+}
+
+function _saveCache(key, obj) {
+    try {
+        sessionStorage.setItem(key, JSON.stringify(obj));
+    } catch (e) {
+        if (currencyHelpersConfig.debug) console.warn("Could not save cache:", e.message);
+    }
+}
+
+function _getFromCache(cacheKey, itemKey) {
+    const cache = _loadCache(cacheKey);
+    const entry = cache[itemKey];
+    if (entry && (Date.now() - entry.ts) < CACHE_TTL_MS) {
+        return entry.data;
+    }
+    return null;
+}
+
+function _setToCache(cacheKey, itemKey, data) {
+    const cache = _loadCache(cacheKey);
+    cache[itemKey] = { data, ts: Date.now() };
+    _saveCache(cacheKey, cache);
+}
+
+async function detectCurrencyByCountry(countryInput) {
+    if (!countryInput) return null;
+    let lookupTerm = countryInput.toString().toLowerCase();
+    if (currencyHelpersConfig.countryMap[lookupTerm]) {
+        lookupTerm = currencyHelpersConfig.countryMap[lookupTerm].toLowerCase();
+    }
+    const cacheKey = 'currencyCache_v2';
+    const cachedCurrency = _getFromCache(cacheKey, lookupTerm);
+    if (cachedCurrency) return cachedCurrency;
+    const _parseCountryData = (data) => {
+        const country = Array.isArray(data) ? data[0] : data;
+        if (country && country.currencies) {
+            const currencyCodes = Object.keys(country.currencies);
+            return currencyCodes.length > 0 ? currencyCodes[0] : null;
+        }
+        return null;
+    };
+    try {
+        let currency = null;
+        if (/^[a-z]{2,3}$/i.test(lookupTerm)) {
+            const res = await fetch(`https://restcountries.com/v3.1/alpha/${encodeURIComponent(lookupTerm)}`);
+            if (res.ok) currency = _parseCountryData(await res.json());
+        }
+        if (!currency) {
+            const res = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(lookupTerm)}?fullText=true`);
+            if (res.ok) currency = _parseCountryData(await res.json());
+        }
+        if (currency) {
+            _setToCache(cacheKey, lookupTerm, currency);
+        } else if (currencyHelpersConfig.debug) {
+            console.warn(`RestCountries API returned no currency for "${lookupTerm}"`);
+        }
+        return currency;
+    } catch (err) {
+        if (currencyHelpersConfig.debug) console.error('detectCurrencyByCountry error:', err);
+        return null;
+    }
+}
+
+async function getExchangeRate(fromCurrency, toCurrency = 'USD') {
+    if (!fromCurrency) return null;
+    const from = fromCurrency.toUpperCase();
+    const to = toCurrency.toUpperCase();
+    if (from === to) return 1;
+    const cacheKey = 'fxRateCache_v2';
+    const itemKey = `${from}_${to}`;
+    const cachedRate = _getFromCache(cacheKey, itemKey);
+    if (cachedRate) return cachedRate;
+    try {
+        const res = await fetch(`https://open.er-api.com/v6/latest/${from}`);
+        if (!res.ok) return null;
+        const json = await res.json();
+        if (json.result !== "success" || !json.rates || isNaN(json.rates[to])) {
+             if (currencyHelpersConfig.debug) console.warn(`Exchange rate API failed or did not provide a rate for ${from} -> ${to}`);
+            return null;
+        }
+        const rate = Number(json.rates[to]);
+        _setToCache(cacheKey, itemKey, rate);
+        return rate;
+    } catch (err) {
+        if (currencyHelpersConfig.debug) console.error('getExchangeRate error:', err);
+        return null;
+    }
+}
+
+async function convertCurrency(amount, fromCurrency, toCurrency = 'USD') {
+    if (amount == null || isNaN(Number(amount))) return null;
+    const rate = await getExchangeRate(fromCurrency, toCurrency);
+    return rate !== null ? Number(amount) * rate : null;
+}
+
+async function detectCurrencyAndConvert(countryInput, amount, toCurrency = 'USD') { // MODIFIED: Added toCurrency parameter
+    try {
+        const currency = await detectCurrencyByCountry(countryInput);
+        if (!currency) return { ok: false, reason: 'currency_not_found' };
+        const converted = await convertCurrency(amount, currency, toCurrency); // MODIFIED: Pass toCurrency
+        if (converted == null) return { ok: false, reason: 'conversion_failed' };
+        return { ok: true, currency, amount, converted };
+    } catch (err) {
+        if (currencyHelpersConfig.debug) console.error('detectCurrencyAndConvert error:', err);
+        return { ok: false, reason: 'exception', message: err.message };
+    }
+}
+
 // --- Core Game Logic ---
 function showLoader() { loader.style.display = 'flex'; }
 function hideLoader() { loader.style.display = 'none'; }
 
 async function ensurePreloadQueue() {
     if (isPreloading || preloadQueue.length >= gameSettings.preloadTarget) return;
-
     isPreloading = true;
     if (gameSettings.debugMode) console.log(`Queue is low (${preloadQueue.length}/${gameSettings.preloadTarget}). Preloading...`);
-
     while (preloadQueue.length < gameSettings.preloadTarget) {
         const newCoaster = await fetchValidCoaster();
         if (newCoaster) {
@@ -215,7 +352,6 @@ async function fetchValidCoaster() {
             return fetchValidCoaster();
         }
         const data = await response.json();
-
         const hasPicture = data.mainPicture && data.mainPicture.url;
         const hasName = data.name && data.name !== "Unknown";
         const hasPark = data.park?.name;
@@ -223,9 +359,10 @@ async function fetchValidCoaster() {
 
         if (hasPicture && hasName && hasPark && hasAnyStat) {
             if (activeStats.includes('cost') && data.stats?.cost && data.country) {
-                const conversion = await detectCurrencyAndConvert(data.country, data.stats.cost);
+                // MODIFIED: Pass the target currency from settings to the conversion function
+                const conversion = await detectCurrencyAndConvert(data.country, data.stats.cost, gameSettings.currency);
                 data.convertedCost = conversion?.ok ? conversion.converted : data.stats.cost;
-                if (gameSettings.debugMode) console.log(`Converted cost for ${data.name}: ${data.stats.cost} -> ${data.convertedCost} USD (country: ${data.country})`);
+                if (gameSettings.debugMode) console.log(`Converted cost for ${data.name}: ${data.stats.cost} -> ${data.convertedCost} ${gameSettings.currency} (country: ${data.country})`);
             }
             return data;
         } else {
@@ -251,7 +388,6 @@ async function startBattle(first = false) {
     if (isGameOver) return;
     showLoader();
     resetTimer();
-
     ensurePreloadQueue();
 
     while (preloadQueue.length < 2) {
@@ -308,7 +444,6 @@ async function startBattle(first = false) {
             const difference = Math.abs(leftStatVal - rightStatVal);
             let isSimilar = false;
             const difficulty = gameSettings.similarDifficulty;
-
             switch (currentStat) {
                 case 'year':
                     isSimilar = difference <= difficulty;
@@ -334,7 +469,6 @@ async function startBattle(first = false) {
         }
         
         foundMatch = true;
-
     } while (!foundMatch);
     
     if (gameSettings.debugMode) console.log(`Coaster Right: ${coasterRight.name} (ID: ${coasterRight.id})`);
@@ -377,148 +511,15 @@ function getCoasterStat(coaster, stat) {
 
 function formatCurrency(value) {
     if (!value || value <= 0) return "Unknown";
-    const totalValue = value; // Valor directo, no *1000
+    // NEW: Dynamically set currency symbol based on game settings
+    const symbol = gameSettings.currency === 'EUR' ? '€' : '$';
+    const totalValue = value;
     if (totalValue >= 1000000) {
         const millions = totalValue / 1000000;
-        return `$${millions.toFixed(1)}M`;
+        return `${symbol}${millions.toFixed(1)}M`;
     }
-    return `$${totalValue.toLocaleString('en-US')}`;
+    return `${symbol}${totalValue.toLocaleString('en-US')}`;
 }
-
-//Currency detection & conversion helpers 
-
-const currencyCacheKey = 'currencyCache_v1';
-const rateCacheKey = 'fxRateCache_v1';
-const CACHE_TTL_MS = 1000 * 60 * 60; // 1 hora
-
-function _loadCache(key) {
-    try {
-        const raw = sessionStorage.getItem(key);
-        return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-        return {};
-    }
-}
-
-function _saveCache(key, obj) {
-    try { sessionStorage.setItem(key, JSON.stringify(obj)); } catch(e){}
-}
-
-async function detectCurrencyByCountry(input) {
-    // input puede ser nombre del país o código ISO (2/3 letras)
-    if (!input) return null;
-    const cache = _loadCache(currencyCacheKey);
-    const key = input.toString().toLowerCase();
-    if (cache[key] && (Date.now() - cache[key].ts) < CACHE_TTL_MS) return cache[key].currency;
-
-    try {
-        let url;
-        // Primero intenta alpha si parece un código, si falla prueba por nombre
-        if (/^[a-z]{2,3}$/i.test(input)) {
-            url = `https://restcountries.com/v3.1/alpha/${encodeURIComponent(input)}`;
-            let res = await fetch(url);
-            if (res.ok) {
-                const data = await res.json();
-                const country = Array.isArray(data) ? data[0] : data;
-                if (country && country.currencies) {
-                    const currencyCodes = Object.keys(country.currencies);
-                    const currency = currencyCodes && currencyCodes.length ? currencyCodes[0] : null;
-                    cache[key] = { currency, ts: Date.now() };
-                    _saveCache(currencyCacheKey, cache);
-                    return currency;
-                }
-            }
-            // si alpha falló, continua y prueba por nombre
-        }
-        url = `https://restcountries.com/v3.1/name/${encodeURIComponent(input)}?fullText=false`;
-        const res2 = await fetch(url);
-        if (!res2.ok) {
-            if (gameSettings.debugMode) console.warn(`restcountries lookup failed for "${input}" (status ${res2.status})`);
-            return null;
-        }
-        const data2 = await res2.json();
-        const country2 = Array.isArray(data2) ? data2[0] : data2;
-        if (!country2 || !country2.currencies) {
-            if (gameSettings.debugMode) console.warn(`restcountries returned no currency for "${input}"`);
-            return null;
-        }
-        const currencyCodes2 = Object.keys(country2.currencies);
-        const currency2 = currencyCodes2 && currencyCodes2.length ? currencyCodes2[0] : null;
-        cache[key] = { currency: currency2, ts: Date.now() };
-        _saveCache(currencyCacheKey, cache);
-        return currency2;
-    } catch (err) {
-        console.error('detectCurrencyByCountry error', err);
-        return null;
-    }
-}
-
-async function getExchangeRate(fromCurrency, toCurrency = 'USD') {
-    if (!fromCurrency) return null;
-    fromCurrency = fromCurrency.toUpperCase();
-    toCurrency = toCurrency.toUpperCase();
-    if (fromCurrency === toCurrency) return 1;
-
-    const cache = _loadCache(rateCacheKey);
-    const key = `${fromCurrency}_${toCurrency}`.toUpperCase();
-    if (cache[key] && (Date.now() - cache[key].ts) < CACHE_TTL_MS) return cache[key].rate;
-
-    try {
-        const url = `https://open.er-api.com/v6/latest/${fromCurrency}`;
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const json = await res.json();
-        if (json.result !== "success") return null;
-        let rate = json.rates && json.rates[toCurrency];
-        if (rate == null || isNaN(rate)) return null;
-        rate = Number(rate);
-        cache[key] = { rate, ts: Date.now() };
-        _saveCache(rateCacheKey, cache);
-        return rate;
-    } catch (err) {
-        console.error('getExchangeRate error', err);
-        return null;
-    }
-}
-
-async function convertCurrency(amount, fromCurrency, toCurrency = 'USD') {
-    if (amount == null || isNaN(Number(amount))) return null;
-    const rate = await getExchangeRate(fromCurrency, toCurrency);
-    if (rate == null) return null;
-    return Number(amount) * Number(rate);
-}
-
-async function detectCurrencyAndConvert(countryInput, amount) {
-    try {
-        const currency = await detectCurrencyByCountry(countryInput);
-        if (!currency) return { ok: false, reason: 'currency_not_found', countryInput };
-        const rate = await getExchangeRate(currency, 'USD');
-        if (rate == null) return { ok: false, reason: 'rate_not_found', currency };
-        const converted = await convertCurrency(amount, currency, 'USD');
-        if (converted == null) return { ok: false, reason: 'conversion_failed', currency };
-        return { ok: true, currency, amount, converted, rate };
-    } catch (err) {
-        console.error('detectCurrencyAndConvert error', err);
-        return { ok: false, reason: 'exception', message: err && err.message };
-    }
-}
-
-window.detectCurrencyByCountry = detectCurrencyByCountry;
-window.getExchangeRate = getExchangeRate;
-window.convertCurrency = convertCurrency;
-window.detectCurrencyAndConvert = detectCurrencyAndConvert;
-
-window.detectCurrencyAndConvertLog = function(countryInput, amount) {
-    detectCurrencyAndConvert(countryInput, amount).then(result => {
-        if (!result) return console.log('No result (null) from detectCurrencyAndConvert');
-        if (!result.ok) {
-            console.warn('Conversion failed:', result);
-        } else {
-            console.log(`${amount} in ${result.currency} ≈ $${result.converted.toFixed(2)} (rate ${result.rate})`);
-        }
-    }).catch(err => console.error('detectCurrencyAndConvertLog error', err));
-};
-
 
 function formatStatValue(stat, value) {
     if (value == null) return "Unknown";
@@ -548,9 +549,6 @@ function animateFade() {
         right.classList.add("fade-in");
     }, 10);
 }
-
-document.getElementById("higher").onclick = () => checkAnswer(true);
-document.getElementById("lower").onclick = () => checkAnswer(false);
 
 function checkAnswer(guessHigher) {
     if (isGameOver) return;
@@ -614,7 +612,6 @@ function showNotification(text, color) {
     }, 1000);
 }
 
-// Timer Functions
 function startTimer() {
     const duration = gameSettings.timerDuration;
     if (duration <= 0) return;
@@ -637,8 +634,15 @@ function resetTimer() {
     timerBar.style.transition = 'none';
 }
 
+function init() {
+    updateScores();
+    populateStatFilters();
+    loadSettings();
+    startBattle(true);
+}
 
-// --- Event Listeners & Modals ---
+
+// --- EVENT LISTENERS ---
 settingsIcon.onclick = () => settingsModal.style.display = "flex";
 closeModalButton.onclick = () => settingsModal.style.display = "none";
 
@@ -648,6 +652,16 @@ unitsSelect.onchange = (e) => {
     if (coasterLeft) {
         document.getElementById("left-stat").innerText = formatStatValue(currentStat, getCoasterStat(coasterLeft, currentStat));
     }
+};
+
+// NEW: Event listener for the currency dropdown
+currencySelect.onchange = (e) => {
+    gameSettings.currency = e.target.value;
+    saveSettings();
+    // Restart the game to apply the new currency setting to all coaster data
+    // This is the cleanest way to ensure all conversions are correct
+    preloadQueue = []; // Clear queue of coasters with old currency data
+    playAgainButton.onclick();
 };
 
 timerSlider.oninput = (e) => {
@@ -731,6 +745,9 @@ copyScoreButton.onclick = () => {
 leaderboardIcon.onclick = () => leaderboardModal.style.display = 'flex';
 closeLeaderboardButton.onclick = () => leaderboardModal.style.display = 'none';
 
+document.getElementById("higher").onclick = () => checkAnswer(true);
+document.getElementById("lower").onclick = () => checkAnswer(false);
+
 window.addEventListener('click', (event) => {
     if (event.target == settingsModal || event.target == leaderboardModal) {
         settingsModal.style.display = "none";
@@ -739,12 +756,32 @@ window.addEventListener('click', (event) => {
 });
 
 
-// --- Initial Load ---
-function init() {
-    updateScores();
-    populateStatFilters();
-    loadSettings();
-    startBattle(true);
-}
+// --- GLOBAL HELPERS & INITIALIZATION ---
+window.currencyHelpers = {
+    detectCurrencyByCountry,
+    getExchangeRate,
+    convertCurrency,
+    detectCurrencyAndConvert
+};
+
+window.logConversion = function(countryInput, amount) {
+    if (!currencyHelpersConfig.debug) {
+        console.log("Enable debug mode in game settings to see conversion logs.");
+        return;
+    }
+
+    console.log(`Attempting to convert ${amount} from currency of "${countryInput}"...`);
+    detectCurrencyAndConvert(countryInput, amount, gameSettings.currency).then(result => {
+        if (!result) {
+            console.error('Conversion returned a null result.');
+            return;
+        }
+        if (result.ok) {
+            console.log(`✅ Success: ${amount} ${result.currency} ≈ ${result.converted.toFixed(2)} ${gameSettings.currency}`);
+        } else {
+            console.warn(`❌ Failed: Could not convert. Reason: ${result.reason}`);
+        }
+    }).catch(err => console.error('logConversion uncaught error:', err));
+};
 
 init();
