@@ -57,7 +57,7 @@ const currencyHelpersConfig = {
 // Default Settings
 let gameSettings = {
     units: 'metric',
-    currency: 'USD', // NEW: Added currency setting
+    currency: 'EUR', // NEW: Added currency setting
     timerDuration: 0,
     imageDarkness: 5,
     activeStats: Object.keys(stats),
