@@ -39,6 +39,14 @@ The game is hosted on Vercel - no installation needed.
 
 💡 Pro Tip: Use the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) VS Code extension for hot-reloading.
 
+## 🗺️ Roadmap
+
+Here are some of the exciting features planned for the future of Coaster-Battle:
+
+* 🏆 Global Leaderboard: A fully-fledged online leaderboard to see how your high scores stack up against players from around the world.
+* ⚡ Self-Hosted API Instance: To ensure faster loading times and greater stability, we plan to host our own instances of the RCDB API. This will create a more seamless and reliable gameplay experience.
+* 💡 Feature Suggestions: A dedicated system for players to suggest new roller coasters, stats, or game modes directly through the game's interface.
+
 ## 🤝 Contributing
 
 Contributions are welcome!
