@@ -47,6 +47,10 @@ Here are some of the exciting features planned for the future of Coaster-Battle:
 * ⚡ Vue 2/3
 * 💡 Feature Suggestions: A dedicated system for players to suggest new roller coasters, stats, or game modes directly through the game's interface.
 
+## 🙏 Acknowledgements & Contributors
+
+* 💖 [ZendrYz](https://github.com/ZendrYz) for their incredible work on implementing cost stat 
+
 ## 🤝 Contributing
 
 Contributions are welcome!
