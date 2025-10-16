@@ -12,10 +12,17 @@ let preloadQueue = [];
 let timerInterval;
 
 // Game Data & Constants
+const gameData = {};
+const dataFiles = [
+    'capacity', 'closed', 'cost', 'country', 'drop', 'duration',
+    'height', 'inversions', 'length', 'name', 'park', 'speed',
+    'verticalAngle', 'year', 'photographer-credits'
+];
+
 const whitelist = [1, 3, 5, 7, 10, 11, 12, 13, 17, 18, 22, 24, 25, 28, 29, 30, 31, 32, 35, 37, 40, 4173, 615, 130, 129, 470, 2169, 140, 3305, 12282, 16588, 19515, 750, 526, 15413, 291, 4089, 3704, 2536, 1574, 20275, 14683, 17030, 2079, 9819, 70, 2860, 6640, 73, 67, 4253, 66, 1037, 530, 14116, 11437, 92, 3302, 4079, 138, 90, 4520, 15028, 10891, 3570, 594, 15411, 13383, 20342, 582, 136, 12260, 3231, 741, 270, 460, 2722, 285, 552, 99, 281, 11662, 4042, 742, 16676, 7982, 172, 12941, 173, 9456, 12781, 16985, 94, 87, 95, 2662, 16607, 17420, 1904, 581, 12758, 4190, 20042, 197, 17035, 11579, 196, 3534, 2164, 198, 139, 104, 11450, 747, 9972, 14187, 16586, 535, 1977, 113, 10137, 16682, 4049, 468, 109, 10089, 108, 2498, 107, 20462, 3866, 15330, 557, 703, 6992, 278, 3635, 532, 17278, 14302, 76, 80, 10857, 77, 79, 15412, 16587, 357, 1143, 13422, 163, 617, 17660, 10139, 15410, 1862, 447, 4155, 178, 18691, 176, 550, 1659, 256, 255, 254, 586, 153, 4191, 155, 18398, 20336, 12896, 214, 16885, 212, 653, 469, 3244, 4296, 2572, 20340, 1455, 1903, 220, 15168, 720, 20328, 501, 16124, 6691, 13369, 3609, 534, 2451, 10148, 527, 81, 83, 16349, 4269, 12273, 85, 8588, 1897, 2514, 1478, 86, 2508, 101, 3727, 19332, 3183, 8932, 17658, 13421, 2832, 502, 1106, 131, 1976, 16793, 15594, 158, 408, 13346, 202, 200, 201, 732, 731, 273, 9720, 15286, 2389, 15504, 560, 13377, 602, 12897, 432, 143, 1549, 629, 9431, 14189, 3031, 429, 628, 182, 1981, 218, 537, 478, 4053, 219, 415, 264, 2214, 262, 431, 298, 9517, 123, 538, 120, 121, 8612, 16479, 122, 2657, 3917, 377, 1089, 10136, 544, 6765, 485, 699, 148, 277, 531, 7706, 3631, 8027, 110, 16812, 12277, 9463, 337, 14400, 421, 42, 9430, 556, 3290, 41, 1568, 15457, 542, 422, 209, 210, 19510, 161, 2667, 280, 18816, 21145, 21070, 21085, 21034, 21221, 3254, 1190, 9975, 3117, 15201, 12723, 1235, 1412, 1747, 4162, 3081, 9820, 1458, 777, 2787, 11062, 2472, 15029, 12959, 1845, 12272, 15561, 15515, 1178, 1173, 15562, 17412, 12362, 14462, 16184, 13637, 10154, 2999, 12083, 4526, 897, 770, 1565, 12315, 773, 16047, 769, 14717, 3589, 2747, 10333, 1028, 1414, 4074, 972, 971, 1891, 10018, 1043, 3245, 20266, 1042, 9863, 9040, 4224, 15502, 6764, 12413, 16308, 10077, 17725, 4181, 7645, 16138, 9206, 1073, 3916, 3613, 3938, 12771, 753, 9675, 752, 16327, 1038, 12032, 20019, 1368, 1365, 1369, 1366, 977, 6736, 10239, 762, 760, 3430, 759, 11615, 4075, 981, 982, 11034, 3849, 19160, 4485, 12772, 12575, 3573, 4308, 17570, 1258, 1290, 1218, 1183, 2424, 3621, 1208, 1259, 4038, 1463, 14084, 11058, 19376, 4090, 10902, 2482, 1562, 11048, 1061, 14301, 4147, 10393, 764, 765, 12027, 17866, 14312, 789, 775, 792, 3672, 788, 10698, 11057, 17715, 1011, 4065, 4225, 4150, 3799, 10748, 1227, 9647, 1054, 2054, 12050, 14011, 956, 957, 959, 1444, 15063, 4274, 3617, 11664, 2829, 639, 10972, 15460, 580, 10108, 2861, 64, 4005, 58, 57, 59, 2516, 65, 60, 12140, 16021, 320, 3385, 187, 8662, 186, 1567, 967, 966, 969, 13796, 988, 986, 984, 6667, 9097, 987, 11056, 18358, 1093, 2199, 15212, 4309, 9352, 1651, 11346, 6489, 16310, 16314, 16318, 10983, 10741, 11152, 11550, 11333, 8994, 9114, 18718, 13876, 843, 1413, 12364, 2721, 2749, 1525, 20890, 2956, 10523, 4154, 12098, 3657, 1155, 1322, 1321, 1154, 4149, 1152, 1150, 1168, 1169, 1481, 20652];
 const stats = {
-    length: "Length", height: "Height", drop: "Drop", speed: "Speed", 
-    inversions: "Inversions", verticalAngle: "Vertical Angle", duration: "Duration", 
+    length: "Length", height: "Height", drop: "Drop", speed: "Speed",
+    inversions: "Inversions", verticalAngle: "Vertical Angle", duration: "Duration",
     capacity: "Capacity", year: "Year", cost: "Cost"
 };
 const statLabels = {
@@ -50,14 +57,15 @@ const currencyHelpersConfig = {
     },
     countryMap: {
         "osaka": "Japan",
-        "england": "united kingdom"
+        "england": "united kingdom",
+        "flemish region": "Belgium"
     }
 };
 
 // Default Settings
 let gameSettings = {
     units: 'metric',
-    currency: 'EUR', // NEW: Added currency setting
+    currency: 'EUR',
     timerDuration: 0,
     imageDarkness: 5,
     activeStats: Object.keys(stats),
@@ -76,7 +84,7 @@ const settingsIcon = document.getElementById("settings-icon");
 const settingsModal = document.getElementById("settings-modal");
 const closeModalButton = document.querySelector(".close-button");
 const unitsSelect = document.getElementById("units");
-const currencySelect = document.getElementById("currency-select"); // NEW: Currency dropdown
+const currencySelect = document.getElementById("currency-select");
 const timerSlider = document.getElementById("timer-slider");
 const timerValue = document.getElementById("timer-value");
 const darkenSlider = document.getElementById("darken-slider");
@@ -100,6 +108,36 @@ const statFiltersContainer = document.getElementById('stat-filters');
 
 
 // --- CORE FUNCTIONS ---
+
+async function loadAllGameData() {
+    console.log("Pre-loading all local game data...");
+    showLoader();
+    try {
+        const fetchPromises = dataFiles.map(file =>
+            fetch(`./data/coaster-${file}.json`).then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch ${file}.json: ${response.statusText}`);
+                }
+                return response.json();
+            })
+        );
+
+        const allData = await Promise.all(fetchPromises);
+
+        dataFiles.forEach((file, index) => {
+            gameData[file] = allData[index];
+        });
+
+        console.log("Local game data loaded successfully!");
+        return true;
+    } catch (error) {
+        console.error("Fatal Error: Could not load local game data.", error);
+        hideLoader();
+        document.body.innerHTML = `<div style="color: white; text-align: center; padding-top: 20%;"><h1>Error: Could not load game data.</h1><p>Please check the console for details and refresh the page.</p></div>`;
+        return false;
+    }
+}
+
 
 // --- Settings Management ---
 function updateSliderBackground(slider) {
@@ -127,12 +165,12 @@ function loadSettings() {
         }
         activeStats = [...gameSettings.activeStats];
     }
-    
+
     unitsSelect.value = gameSettings.units;
-    currencySelect.value = gameSettings.currency; // NEW: Load currency setting
+    currencySelect.value = gameSettings.currency;
     timerSlider.value = gameSettings.timerDuration;
     timerValue.innerText = gameSettings.timerDuration > 0 ? `${gameSettings.timerDuration}s` : 'Off';
-    
+
     darkenSlider.value = gameSettings.imageDarkness;
     darkenValue.innerText = `${gameSettings.imageDarkness}%`;
     document.documentElement.style.setProperty('--image-darken-amount', `rgba(0, 0, 0, ${gameSettings.imageDarkness / 100})`);
@@ -141,14 +179,14 @@ function loadSettings() {
     } else {
         body.classList.remove('no-vignette');
     }
-    
+
     hardModeToggle.checked = gameSettings.hardMode;
     similarModeToggle.checked = gameSettings.similarMode;
     debugModeToggle.checked = gameSettings.debugMode;
 
     similarDifficultySlider.value = gameSettings.similarDifficulty;
     similarDifficultyValue.innerText = gameSettings.similarDifficulty;
-    
+
     preloadSlider.value = gameSettings.preloadTarget;
     preloadValue.innerText = gameSettings.preloadTarget;
 
@@ -156,7 +194,7 @@ function loadSettings() {
         checkbox.checked = gameSettings.activeStats.includes(checkbox.dataset.stat);
     });
     checkFilterState();
-    
+
     document.querySelectorAll('input[type="range"]').forEach(updateSliderBackground);
 }
 
@@ -185,14 +223,14 @@ function handleFilterChange() {
 }
 
 function checkFilterState() {
-      const checkedBoxes = document.querySelectorAll('.stat-filter-checkbox:checked');
-      if (checkedBoxes.length === 1) {
-          checkedBoxes[0].disabled = true;
-      } else {
-          document.querySelectorAll('.stat-filter-checkbox').forEach(cb => {
-              cb.disabled = false;
-          });
-      }
+    const checkedBoxes = document.querySelectorAll('.stat-filter-checkbox:checked');
+    if (checkedBoxes.length === 1) {
+        checkedBoxes[0].disabled = true;
+    } else {
+        document.querySelectorAll('.stat-filter-checkbox').forEach(cb => {
+            cb.disabled = false;
+        });
+    }
 }
 
 // --- Currency Detection & Conversion Helpers ---
@@ -286,7 +324,7 @@ async function getExchangeRate(fromCurrency, toCurrency = 'USD') {
         if (!res.ok) return null;
         const json = await res.json();
         if (json.result !== "success" || !json.rates || isNaN(json.rates[to])) {
-             if (currencyHelpersConfig.debug) console.warn(`Exchange rate API failed or did not provide a rate for ${from} -> ${to}`);
+            if (currencyHelpersConfig.debug) console.warn(`Exchange rate API failed or did not provide a rate for ${from} -> ${to}`);
             return null;
         }
         const rate = Number(json.rates[to]);
@@ -304,11 +342,11 @@ async function convertCurrency(amount, fromCurrency, toCurrency = 'USD') {
     return rate !== null ? Number(amount) * rate : null;
 }
 
-async function detectCurrencyAndConvert(countryInput, amount, toCurrency = 'USD') { // MODIFIED: Added toCurrency parameter
+async function detectCurrencyAndConvert(countryInput, amount, toCurrency = 'USD') {
     try {
         const currency = await detectCurrencyByCountry(countryInput);
         if (!currency) return { ok: false, reason: 'currency_not_found' };
-        const converted = await convertCurrency(amount, currency, toCurrency); // MODIFIED: Pass toCurrency
+        const converted = await convertCurrency(amount, currency, toCurrency);
         if (converted == null) return { ok: false, reason: 'conversion_failed' };
         return { ok: true, currency, amount, converted };
     } catch (err) {
@@ -323,54 +361,113 @@ function hideLoader() { loader.style.display = 'none'; }
 
 async function ensurePreloadQueue() {
     if (isPreloading || preloadQueue.length >= gameSettings.preloadTarget) return;
+
     isPreloading = true;
-    if (gameSettings.debugMode) console.log(`Queue is low (${preloadQueue.length}/${gameSettings.preloadTarget}). Preloading...`);
-    while (preloadQueue.length < gameSettings.preloadTarget) {
-        const newCoaster = await fetchValidCoaster();
-        if (newCoaster) {
-            preloadQueue.push(newCoaster);
-            let img = new Image();
-            img.src = newCoaster.mainPicture.url;
-            if (gameSettings.debugMode) console.log(`Preloaded and validated: ${newCoaster.name}. Queue size: ${preloadQueue.length}`);
-        }
+    const needed = gameSettings.preloadTarget - preloadQueue.length;
+    if (needed <= 0) {
+        isPreloading = false;
+        return;
     }
-    isPreloading = false;
+
+    if (gameSettings.debugMode) console.log(`Queue is low (${preloadQueue.length}/${gameSettings.preloadTarget}). Preloading ${needed} coasters in parallel...`);
+
+    const preloadPromises = [];
+    for (let i = 0; i < needed; i++) {
+        preloadPromises.push(fetchValidCoaster());
+    }
+
+    try {
+        const newCoasters = await Promise.all(preloadPromises);
+        newCoasters.forEach(coaster => {
+            if (coaster) {
+                preloadQueue.push(coaster);
+                let img = new Image();
+                img.src = coaster.mainPicture.url;
+            }
+        });
+        if (gameSettings.debugMode) console.log(`Preloading complete. Queue size: ${preloadQueue.length}`);
+    } catch (error) {
+        console.error("An error occurred during parallel preloading:", error);
+    } finally {
+        isPreloading = false;
+    }
 }
 
 async function fetchValidCoaster() {
     try {
         let id;
         if (gameSettings.hardMode) {
-            id = Math.floor(Math.random() * 23200) + 1;
+            const idSets = activeStats.map(stat => new Set(Object.keys(gameData[stat])));
+            const intersection = idSets.reduce((a, b) => new Set([...a].filter(x => b.has(x))));
+            const validIds = Array.from(intersection);
+
+            if (validIds.length === 0) {
+                console.warn("No coasters found that have all active stats. Falling back to all coasters.");
+                const allIds = Object.keys(gameData.name);
+                id = allIds[Math.floor(Math.random() * allIds.length)];
+            } else {
+                id = validIds[Math.floor(Math.random() * validIds.length)];
+            }
         } else {
             id = whitelist[Math.floor(Math.random() * whitelist.length)];
         }
-        
+
+        if (!gameData.name[id] || !gameData.park[id]) {
+            if (gameSettings.debugMode) console.log(`Coaster ID ${id} is invalid in local data, skipping.`);
+            return fetchValidCoaster();
+        }
+
         const response = await fetch(`https://rcdb-api.vercel.app/api/coasters/${id}`);
         if (!response.ok) {
-            if (gameSettings.debugMode) console.log(`Coaster ID ${id} not found (404), trying again.`);
+            if (gameSettings.debugMode) console.log(`API picture for Coaster ID ${id} not found, trying again.`);
             return fetchValidCoaster();
         }
-        const data = await response.json();
-        const hasPicture = data.mainPicture && data.mainPicture.url;
-        const hasName = data.name && data.name !== "Unknown";
-        const hasPark = data.park?.name;
-        const hasAnyStat = activeStats.some(stat => hasStat(data, stat));
+        const apiData = await response.json();
 
-        if (hasPicture && hasName && hasPark && hasAnyStat) {
-            if (activeStats.includes('cost') && data.stats?.cost && data.country) {
-                // MODIFIED: Pass the target currency from settings to the conversion function
-                const conversion = await detectCurrencyAndConvert(data.country, data.stats.cost, gameSettings.currency);
-                data.convertedCost = conversion?.ok ? conversion.converted : data.stats.cost;
-                if (gameSettings.debugMode) console.log(`Converted cost for ${data.name}: ${data.stats.cost} -> ${data.convertedCost} ${gameSettings.currency} (country: ${data.country})`);
-            }
-            return data;
-        } else {
-            if (gameSettings.debugMode) console.log(`Coaster ID ${id} (${data.name}) is invalid, skipping. Picture: ${!!hasPicture}, Name: ${!!hasName}, Park: ${!!hasPark}, Stat: ${!!hasAnyStat}`);
+        if (!apiData.mainPicture || !apiData.mainPicture.url) {
+            if (gameSettings.debugMode) console.log(`Coaster ID ${id} has no picture on API, skipping.`);
             return fetchValidCoaster();
         }
+
+        const coasterData = {
+            id: id,
+            name: gameData.name[id],
+            park: { name: gameData.park[id] },
+            country: gameData.country[id],
+            status: { date: { opened: gameData.year[id] } },
+            mainPicture: {
+                url: apiData.mainPicture.url,
+                copyName: apiData.mainPicture.copyName
+            },
+            stats: {
+                length: gameData.length[id],
+                height: gameData.height[id],
+                drop: gameData.drop[id],
+                speed: gameData.speed[id],
+                inversions: gameData.inversions[id],
+                verticalAngle: gameData.verticalAngle[id],
+                duration: gameData.duration[id],
+                capacity: gameData.capacity[id],
+                cost: gameData.cost[id]
+            }
+        };
+
+        const hasAnyStat = activeStats.some(stat => hasStat(coasterData, stat));
+        if (!hasAnyStat) {
+            if (gameSettings.debugMode) console.log(`Coaster ID ${id} (${coasterData.name}) has no valid active stats, skipping.`);
+            return fetchValidCoaster();
+        }
+
+        if (activeStats.includes('cost') && coasterData.stats.cost && coasterData.country) {
+            const conversion = await detectCurrencyAndConvert(coasterData.country, coasterData.stats.cost, gameSettings.currency);
+            coasterData.convertedCost = conversion?.ok ? conversion.converted : coasterData.stats.cost;
+            if (gameSettings.debugMode) console.log(`Converted cost for ${coasterData.name}: ${coasterData.stats.cost} -> ${coasterData.convertedCost} ${gameSettings.currency}`);
+        }
+
+        return coasterData;
+
     } catch (error) {
-        console.error("Failed to fetch coaster:", error);
+        console.error("Failed to fetch and assemble coaster data:", error);
         return null;
     }
 }
@@ -384,101 +481,116 @@ function hasStat(coaster, stat) {
     return value !== null && !isNaN(value);
 }
 
+// REFINED: Heavily optimized for faster startup and robust pair finding.
 async function startBattle(first = false) {
     if (isGameOver) return;
     showLoader();
     resetTimer();
-    ensurePreloadQueue();
 
-    while (preloadQueue.length < 2) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        await ensurePreloadQueue();
-    }
+    if (first) {
+        let foundPair = false;
+        while (!foundPair) {
+            if (gameSettings.debugMode) console.log("Fetching initial pair in parallel...");
+            const [c1, c2] = await Promise.all([fetchValidCoaster(), fetchValidCoaster()]);
+            if (!c1 || !c2) continue; // A fetch failed, try again.
 
-    if (first || !coasterRight) {
-        coasterLeft = preloadQueue.shift();
+            // Find stats where both coasters have a value and the values are different
+            let availableStats = activeStats.filter(stat =>
+                hasStat(c1, stat) &&
+                hasStat(c2, stat) &&
+                getCoasterStat(c1, stat) !== getCoasterStat(c2, stat)
+            );
+
+            if (availableStats.length > 0) {
+                coasterLeft = c1;
+                coasterRight = c2;
+                currentStat = availableStats[Math.floor(Math.random() * availableStats.length)];
+                lastStat = currentStat;
+                foundPair = true;
+            }
+        }
     } else {
         coasterLeft = coasterRight;
-    }
 
-    let availableStats = activeStats.filter(stat => stat !== lastStat && hasStat(coasterLeft, stat));
-    if (availableStats.length === 0) availableStats = activeStats.filter(stat => hasStat(coasterLeft, stat));
-    
-    if (availableStats.length === 0) {
-        coasterLeft = preloadQueue.shift();
-        startBattle(false);
-        return;
-    }
+        await ensurePreloadQueue(); // Make sure queue has items before proceeding
+        while (preloadQueue.length < 1) {
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait if queue is still filling
+        }
 
-    currentStat = availableStats[Math.floor(Math.random() * availableStats.length)];
-    lastStat = currentStat;
-    
-    if (gameSettings.debugMode) {
-        console.log(`--- NEW ROUND (Score: ${score}) ---`);
-        console.log(`Coaster Left: ${coasterLeft.name} (ID: ${coasterLeft.id})`);
-        console.log(`Selected Stat: ${currentStat.toUpperCase()}`);
-    }
+        let foundMatch = false;
+        let retries = 0;
+        const maxRetries = preloadQueue.length + 5;
 
-    let retries = 0;
-    let foundMatch = false;
-    do {
-        if (preloadQueue.length < 1) await ensurePreloadQueue(); 
-        
-        coasterRight = preloadQueue.shift();
-        retries++;
+        while(!foundMatch && retries < maxRetries) {
+            if (preloadQueue.length === 0) {
+                 if (gameSettings.debugMode) console.log("Queue empty, fetching fresh coaster for the right side...");
+                 coasterRight = await fetchValidCoaster();
+                 if(!coasterRight) continue; // Fetch failed, retry loop
+            } else {
+                 coasterRight = preloadQueue.shift();
+            }
+            ensurePreloadQueue(); // Immediately start refilling the queue
+            
+            let availableStats = activeStats.filter(stat =>
+                stat !== lastStat &&
+                hasStat(coasterLeft, stat) &&
+                hasStat(coasterRight, stat) &&
+                getCoasterStat(coasterLeft, stat) !== getCoasterStat(coasterRight, stat)
+            );
 
-        if (retries > 50) {
-            console.error("Could not find a suitable coaster pair. Restarting.");
+            if (availableStats.length === 0) {
+                 retries++;
+                 continue; // This pair doesn't work, try next coaster from queue
+            }
+            
+            currentStat = availableStats[Math.floor(Math.random() * availableStats.length)];
+            lastStat = currentStat;
+
+            // Similar mode check
+            if (gameSettings.similarMode) {
+                const leftStatVal = getCoasterStat(coasterLeft, currentStat);
+                const rightStatVal = getCoasterStat(coasterRight, currentStat);
+                const difference = Math.abs(leftStatVal - rightStatVal);
+                let isSimilar = false;
+                const difficulty = gameSettings.similarDifficulty;
+                switch (currentStat) {
+                    case 'year': isSimilar = difference <= difficulty; break;
+                    case 'inversions': isSimilar = difference <= Math.ceil(difficulty / 2.5); break;
+                    default:
+                        const percentThreshold = difficulty * 2;
+                        const thresholdValue = leftStatVal * (percentThreshold / 100);
+                        isSimilar = difference <= thresholdValue;
+                        break;
+                }
+                if (!isSimilar) {
+                    retries++;
+                    continue; // Not similar enough, try next coaster from queue
+                }
+            }
+            foundMatch = true;
+        }
+
+        if (!foundMatch) {
+            console.error("Could not find a suitable coaster pair from queue. Restarting with a fresh pair.");
             startBattle(true);
             return;
         }
+    }
 
-        const rightHasStat = coasterRight && hasStat(coasterRight, currentStat);
-        if (!rightHasStat) continue;
+    if (gameSettings.debugMode) {
+        console.log(`--- NEW ROUND (Score: ${score}) ---`);
+        console.log(`Coaster Left: ${coasterLeft.name} (ID: ${coasterLeft.id})`);
+        console.log(`Coaster Right: ${coasterRight.name} (ID: ${coasterRight.id})`);
+        console.log(`Selected Stat: ${currentStat.toUpperCase()}`);
+    }
 
-        const leftStatVal = getCoasterStat(coasterLeft, currentStat);
-        const rightStatVal = getCoasterStat(coasterRight, currentStat);
-        if (leftStatVal === rightStatVal) continue;
-
-        if (gameSettings.similarMode) {
-            const difference = Math.abs(leftStatVal - rightStatVal);
-            let isSimilar = false;
-            const difficulty = gameSettings.similarDifficulty;
-            switch (currentStat) {
-                case 'year':
-                    isSimilar = difference <= difficulty;
-                    break;
-                case 'inversions':
-                    const invThreshold = Math.ceil(difficulty / 2.5); 
-                    isSimilar = difference <= invThreshold;
-                    break;
-                case 'cost': {
-                    const percentThreshold = difficulty * 2;
-                    const thresholdValue = leftStatVal * (percentThreshold / 100);
-                    isSimilar = difference <= thresholdValue;
-                    break;
-                }
-                default: {
-                    const percentThreshold = difficulty * 2;
-                    const thresholdValue = leftStatVal * (percentThreshold / 100);
-                    isSimilar = difference <= thresholdValue;
-                    break;
-                }
-            }
-            if (!isSimilar) continue;
-        }
-        
-        foundMatch = true;
-    } while (!foundMatch);
-    
-    if (gameSettings.debugMode) console.log(`Coaster Right: ${coasterRight.name} (ID: ${coasterRight.id})`);
-    
     ensurePreloadQueue();
-    
+
     showCoasters();
     hideLoader();
     if (gameSettings.timerDuration > 0) startTimer();
 }
+
 
 function showCoasters() {
     const labels = statLabels[currentStat] || statLabels.default;
@@ -501,7 +613,7 @@ function showCoasters() {
 
 function getCoasterStat(coaster, stat) {
     if (stat === "year") {
-        return coaster.status?.date?.opened ? parseInt(coaster.status.date.opened.split("-")[0]) : null;
+        return coaster.status?.date?.opened ? parseInt(coaster.status.date.opened) : null;
     }
     if (stat === "cost") {
         return coaster.convertedCost ?? coaster.stats?.[stat] ?? null;
@@ -509,9 +621,9 @@ function getCoasterStat(coaster, stat) {
     return coaster.stats ? coaster.stats[stat] : null;
 }
 
+
 function formatCurrency(value) {
     if (!value || value <= 0) return "Unknown";
-    // NEW: Dynamically set currency symbol based on game settings
     const symbol = gameSettings.currency === 'EUR' ? '€' : '$';
     const totalValue = value;
     if (totalValue >= 1000000) {
@@ -552,7 +664,7 @@ function animateFade() {
 
 function checkAnswer(guessHigher) {
     if (isGameOver) return;
-    
+
     resetTimer();
     let left = parseFloat(getCoasterStat(coasterLeft, currentStat));
     let right = parseFloat(getCoasterStat(coasterRight, currentStat));
@@ -564,13 +676,16 @@ function checkAnswer(guessHigher) {
     }
 
     document.getElementById("right-stat").innerText = formatStatValue(currentStat, right);
-    
+
     if ((guessHigher && right > left) || (!guessHigher && right < left)) {
         score++;
         bestScore = Math.max(score, bestScore);
         localStorage.setItem('bestScore', bestScore);
         showNotification("Correct!", "lime");
         if (gameSettings.debugMode) console.log(`Correct! New score: ${score}`);
+        
+        ensurePreloadQueue(); 
+        
         setTimeout(() => startBattle(false), 1200);
     } else {
         showNotification("Wrong!", "red");
@@ -634,7 +749,11 @@ function resetTimer() {
     timerBar.style.transition = 'none';
 }
 
-function init() {
+async function init() {
+    const dataLoaded = await loadAllGameData();
+    
+    if (!dataLoaded) return;
+
     updateScores();
     populateStatFilters();
     loadSettings();
@@ -654,13 +773,10 @@ unitsSelect.onchange = (e) => {
     }
 };
 
-// NEW: Event listener for the currency dropdown
 currencySelect.onchange = (e) => {
     gameSettings.currency = e.target.value;
     saveSettings();
-    // Restart the game to apply the new currency setting to all coaster data
-    // This is the cleanest way to ensure all conversions are correct
-    preloadQueue = []; // Clear queue of coasters with old currency data
+    preloadQueue = []; 
     playAgainButton.onclick();
 };
 
@@ -677,7 +793,7 @@ darkenSlider.oninput = (e) => {
     gameSettings.imageDarkness = value;
     darkenValue.innerText = `${value}%`;
     document.documentElement.style.setProperty('--image-darken-amount', `rgba(0, 0, 0, ${value / 100})`);
-    
+
     if (value === 0) {
         body.classList.add('no-vignette');
     } else {
