@@ -481,7 +481,6 @@ function hasStat(coaster, stat) {
     return value !== null && !isNaN(value);
 }
 
-// REFINED: Heavily optimized for faster startup and robust pair finding.
 async function startBattle(first = false) {
     if (isGameOver) return;
     showLoader();
@@ -492,9 +491,8 @@ async function startBattle(first = false) {
         while (!foundPair) {
             if (gameSettings.debugMode) console.log("Fetching initial pair in parallel...");
             const [c1, c2] = await Promise.all([fetchValidCoaster(), fetchValidCoaster()]);
-            if (!c1 || !c2) continue; // A fetch failed, try again.
+            if (!c1 || !c2) continue;
 
-            // Find stats where both coasters have a value and the values are different
             let availableStats = activeStats.filter(stat =>
                 hasStat(c1, stat) &&
                 hasStat(c2, stat) &&
@@ -512,25 +510,25 @@ async function startBattle(first = false) {
     } else {
         coasterLeft = coasterRight;
 
-        await ensurePreloadQueue(); // Make sure queue has items before proceeding
+        await ensurePreloadQueue();
         while (preloadQueue.length < 1) {
-            await new Promise(resolve => setTimeout(resolve, 100)); // Wait if queue is still filling
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         let foundMatch = false;
         let retries = 0;
         const maxRetries = preloadQueue.length + 5;
 
-        while(!foundMatch && retries < maxRetries) {
+        while (!foundMatch && retries < maxRetries) {
             if (preloadQueue.length === 0) {
-                 if (gameSettings.debugMode) console.log("Queue empty, fetching fresh coaster for the right side...");
-                 coasterRight = await fetchValidCoaster();
-                 if(!coasterRight) continue; // Fetch failed, retry loop
+                if (gameSettings.debugMode) console.log("Queue empty, fetching fresh coaster...");
+                coasterRight = await fetchValidCoaster();
+                if (!coasterRight) continue;
             } else {
-                 coasterRight = preloadQueue.shift();
+                coasterRight = preloadQueue.shift();
             }
-            ensurePreloadQueue(); // Immediately start refilling the queue
-            
+            ensurePreloadQueue();
+
             let availableStats = activeStats.filter(stat =>
                 stat !== lastStat &&
                 hasStat(coasterLeft, stat) &&
@@ -539,14 +537,13 @@ async function startBattle(first = false) {
             );
 
             if (availableStats.length === 0) {
-                 retries++;
-                 continue; // This pair doesn't work, try next coaster from queue
+                retries++;
+                continue;
             }
-            
+
             currentStat = availableStats[Math.floor(Math.random() * availableStats.length)];
             lastStat = currentStat;
 
-            // Similar mode check
             if (gameSettings.similarMode) {
                 const leftStatVal = getCoasterStat(coasterLeft, currentStat);
                 const rightStatVal = getCoasterStat(coasterRight, currentStat);
@@ -554,8 +551,12 @@ async function startBattle(first = false) {
                 let isSimilar = false;
                 const difficulty = gameSettings.similarDifficulty;
                 switch (currentStat) {
-                    case 'year': isSimilar = difference <= difficulty; break;
-                    case 'inversions': isSimilar = difference <= Math.ceil(difficulty / 2.5); break;
+                    case 'year':
+                        isSimilar = difference <= difficulty;
+                        break;
+                    case 'inversions':
+                        isSimilar = difference <= Math.ceil(difficulty / 2.5);
+                        break;
                     default:
                         const percentThreshold = difficulty * 2;
                         const thresholdValue = leftStatVal * (percentThreshold / 100);
@@ -564,7 +565,7 @@ async function startBattle(first = false) {
                 }
                 if (!isSimilar) {
                     retries++;
-                    continue; // Not similar enough, try next coaster from queue
+                    continue;
                 }
             }
             foundMatch = true;
@@ -811,9 +812,12 @@ hardModeToggle.onchange = (e) => {
     ensurePreloadQueue();
 };
 
+// MODIFIED: Added queue clearing for similar mode.
 similarModeToggle.onchange = (e) => {
     gameSettings.similarMode = e.target.checked;
     saveSettings();
+    preloadQueue = []; // Clear the queue of non-similar coasters
+    ensurePreloadQueue(); // Start preloading with the new setting
 };
 
 similarDifficultySlider.oninput = (e) => {
